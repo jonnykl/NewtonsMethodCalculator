@@ -5,12 +5,13 @@ import math.exception.ParseException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class ExpressionParser {
 
-    private static final Pattern NUMBER_PATTERN = Pattern.compile("^([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$");
+    private static final Pattern NUMBER_START_PATTERN = Pattern.compile("^([0-9]+(\\.[0-9]*)?|\\.[0-9]+).*$");
     private static final char[] ALL_OPERATORS = new char[]{'+', '-', '*', '/', '^'};
 
 
@@ -109,17 +110,16 @@ public class ExpressionParser {
 
         steps in this function:
         - parse brackets recursively (results in a almost flat list (maximum depth = 1))
+        - parse scalars
         - parse functions
         - remove all brackets (results in a flat list)
-        - parse constants, scalars, variables
+        - parse constants, variables
         - parse unary use of sign operator
         - check operators
         - parse exponentiation
-        - parse multiplication
-        - parse division
+        - parse multiplication/division
         - merge expressions without operator between them (multiplication)
-        - parse addition
-        - parse subtraction
+        - parse addition/subtraction
 
          */
 
@@ -138,6 +138,37 @@ public class ExpressionParser {
 
             bracketsItem.list = newList;
         }
+
+        // parse scalars
+        for (int i=0; i<list.size(); i++) {
+            ParseItem item = list.get(i);
+            if (!(item instanceof RawItem))
+                continue;
+
+
+            String raw = ((RawItem) item).raw;
+            //System.out.println(": item: " + raw);
+
+            Matcher m = NUMBER_START_PATTERN.matcher(raw);
+            if (m.matches()) {
+                String scalar = m.group(1);
+                String tmp = raw.substring(scalar.length());
+
+                list.add(i, new ExpressionItem(new Scalar(Double.parseDouble(scalar))));
+                if (tmp.length() > 0) {
+                    list.add(i+1, new OperatorItem(Operator.MULTIPLICATION));
+                    list.add(i+2, new RawItem(tmp));
+                    list.remove(i+3);
+                } else {
+                    list.remove(i+1);
+                }
+
+            }
+        }
+
+        //System.out.println("-----------------------------------------------------------");
+        //printList(list, 0);
+        //System.out.println("-----------------------------------------------------------");
 
 
         // parse functions
@@ -181,7 +212,7 @@ public class ExpressionParser {
         }
 
 
-        // parse constants, scalars, variables
+        // parse constants, variables
         for (int i=0; i<list.size(); i++) {
             ParseItem item = list.get(i);
             if (!(item instanceof RawItem))
@@ -196,9 +227,6 @@ public class ExpressionParser {
                 if (raw.equals(constant.name()))
                     replacement = new Constant(constant);
             }
-
-            if (replacement == null && NUMBER_PATTERN.matcher(raw).matches())
-                replacement = new Scalar(Double.parseDouble(raw));
 
             if (replacement == null && VariableDefinition.checkName(raw))
                 replacement = new Variable(raw);
@@ -293,50 +321,43 @@ public class ExpressionParser {
         }
 
 
-        // parse multiplication
+        // parse multiplication/division
         for (int i=0; i<list.size(); i++) {
             ParseItem item = list.get(i);
             if (!(item instanceof OperatorItem))
                 continue;
 
-            if (!Operator.MULTIPLICATION.equals(((OperatorItem) item).operator))
+
+            Expression expression;
+
+            Operator operator = ((OperatorItem) item).operator;
+            if (Operator.MULTIPLICATION.equals(operator)) {
+                if (i == 0 || i == list.size()-1)
+                    throw new ParseException("expected multiplicand", -1);
+
+                ParseItem multiplicand0Item = list.get(i-1);
+                ParseItem multiplicand1Item = list.get(i+1);
+
+                Expression multiplicand0 = parseExpression(multiplicand0Item);
+                Expression multiplicand1 = parseExpression(multiplicand1Item);
+
+                expression = new Multiplication(multiplicand0, multiplicand1);
+            } else if (Operator.DIVISION.equals(operator)) {
+                if (i == 0 || i == list.size()-1)
+                    throw new ParseException("expected dividend or divisor", -1);
+
+                ParseItem dividendItem = list.get(i-1);
+                ParseItem divisorItem = list.get(i+1);
+
+                Expression dividend = parseExpression(dividendItem);
+                Expression divisor = parseExpression(divisorItem);
+
+                expression = new Division(dividend, divisor);
+            } else {
                 continue;
+            }
 
-            if (i == 0 || i == list.size()-1)
-                throw new ParseException("expected multiplicand", -1);
-
-            ParseItem multiplicand0Item = list.get(i-1);
-            ParseItem multiplicand1Item = list.get(i+1);
-
-            Expression multiplicand0 = parseExpression(multiplicand0Item);
-            Expression multiplicand1 = parseExpression(multiplicand1Item);
-            list.add(i, new ExpressionItem(new Multiplication(multiplicand0, multiplicand1)));
-
-            list.remove(i+1);
-            list.remove(i+1);
-            list.remove(i-1);
-            i--;
-        }
-
-
-        // parse division
-        for (int i=0; i<list.size(); i++) {
-            ParseItem item = list.get(i);
-            if (!(item instanceof OperatorItem))
-                continue;
-
-            if (!Operator.DIVISION.equals(((OperatorItem) item).operator))
-                continue;
-
-            if (i == 0 || i == list.size()-1)
-                throw new ParseException("expected dividend or divisor", -1);
-
-            ParseItem dividendItem = list.get(i-1);
-            ParseItem divisorItem = list.get(i+1);
-
-            Expression dividend = parseExpression(dividendItem);
-            Expression divisor = parseExpression(divisorItem);
-            list.add(i, new ExpressionItem(new Division(dividend, divisor)));
+            list.add(i, new ExpressionItem(expression));
 
             list.remove(i+1);
             list.remove(i+1);
@@ -362,56 +383,46 @@ public class ExpressionParser {
         }
 
 
-        // parse addition
+        // parse addition/subtraction
         for (int i=0; i<list.size(); i++) {
             ParseItem item = list.get(i);
             if (!(item instanceof OperatorItem))
                 continue;
 
-            if (!Operator.ADDITION.equals(((OperatorItem) item).operator))
-                continue;
 
-            if (i == 0 || i == list.size()-1)
-                throw new ParseException("expected addend", -1);
+            Operator operator = ((OperatorItem) item).operator;
+            if (Operator.ADDITION.equals(operator)) {
+                if (i == 0 || i == list.size()-1)
+                    throw new ParseException("expected addend", -1);
 
-            ParseItem addend0Item = list.get(i-1);
-            ParseItem addend1Item = list.get(i+1);
+                ParseItem addend0Item = list.get(i-1);
+                ParseItem addend1Item = list.get(i+1);
 
-            Expression addend0 = parseExpression(addend0Item);
-            Expression addend1 = parseExpression(addend1Item);
-            list.add(i, new ExpressionItem(new Addition(addend0, addend1)));
+                Expression addend0 = parseExpression(addend0Item);
+                Expression addend1 = parseExpression(addend1Item);
+                list.add(i, new ExpressionItem(new Addition(addend0, addend1)));
 
-            list.remove(i+1);
-            list.remove(i+1);
-            list.remove(i-1);
-            i--;
-        }
-
-
-        // parse subtraction
-        for (int i=0; i<list.size(); i++) {
-            ParseItem item = list.get(i);
-            if (!(item instanceof OperatorItem))
-                continue;
-
-            if (!Operator.SUBTRACTION.equals(((OperatorItem) item).operator))
-                continue;
-
-            if (i == list.size()-1)
-                throw new ParseException("expected subtrahend", -1);
-
-            ParseItem minuendItem = i != 0 ? list.get(i-1) : null;
-            ParseItem subtrahendItem = list.get(i+1);
-
-            Expression minuend = minuendItem != null ? parseExpression(minuendItem) : new Scalar(0);
-            Expression subtrahend = parseExpression(subtrahendItem);
-            list.add(i, new ExpressionItem(new Substraction(minuend, subtrahend)));
-
-            list.remove(i+1);
-            list.remove(i+1);
-            if (i != 0) {
-                list.remove(i - 1);
+                list.remove(i+1);
+                list.remove(i+1);
+                list.remove(i-1);
                 i--;
+            } else if (Operator.SUBTRACTION.equals(operator)) {
+                if (i == list.size()-1)
+                    throw new ParseException("expected subtrahend", -1);
+
+                ParseItem minuendItem = i != 0 ? list.get(i-1) : null;
+                ParseItem subtrahendItem = list.get(i+1);
+
+                Expression minuend = minuendItem != null ? parseExpression(minuendItem) : new Scalar(0);
+                Expression subtrahend = parseExpression(subtrahendItem);
+                list.add(i, new ExpressionItem(new Substraction(minuend, subtrahend)));
+
+                list.remove(i+1);
+                list.remove(i+1);
+                if (i != 0) {
+                    list.remove(i - 1);
+                    i--;
+                }
             }
         }
 
