@@ -60,6 +60,11 @@ public abstract class Expression {
                     System.out.print('\t');
 
                 System.out.println("operator: " + ((OperatorItem) item).operator.name());
+            } else if (item instanceof ExpressionItem) {
+                for (int i=0; i<depth; i++)
+                    System.out.print('\t');
+
+                System.out.println("expression: " + ((ExpressionItem) item).expression);
             } else if (item instanceof BracketsItem) {
                 printList(((BracketsItem) item).list, depth+1);
             } else {
@@ -126,14 +131,57 @@ public abstract class Expression {
             for (Function.F function : Function.F.values()) {
                 if  (name.equals(function.name())) {
                     Expression parameter = parseExpressions(((BracketsItem) nextItem).list);
+
                     list.add(i, new ExpressionItem(new Function(function, parameter)));
+                    list.remove(i+1);
+                    list.remove(i+1);
 
                     break;
                 }
             }
+        }
 
-            list.remove(i+1);
-            list.remove(i+1);
+
+        // remove all brackets
+        for (int i=0; i<list.size(); i++) {
+            ParseItem item = list.get(i);
+            if (!(item instanceof BracketsItem))
+                continue;
+
+            List<ParseItem> tmp = ((BracketsItem) item).list;
+            list.addAll(i, tmp);
+            list.remove(i+tmp.size());
+            i--;
+        }
+
+
+        // parse constants, scalars, variables
+        for (int i=0; i<list.size(); i++) {
+            ParseItem item = list.get(i);
+            if (!(item instanceof RawItem))
+                continue;
+
+
+            Expression replacement = null;
+
+            String raw = ((RawItem) item).raw;
+            //System.out.println(": item: " + raw);
+            for (Constant.C constant : Constant.C.values()) {
+                if (raw.equals(constant.name()))
+                    replacement = new Constant(constant);
+            }
+
+            if (replacement == null && NUMBER_PATTERN.matcher(raw).matches())
+                replacement = new Scalar(Double.parseDouble(raw));
+
+            if (replacement == null && VariableDefinition.checkName(raw))
+                replacement = new Variable(raw);
+
+
+            if (replacement != null) {
+                list.add(i, new ExpressionItem(replacement));
+                list.remove(i+1);
+            }
         }
 
 
@@ -146,25 +194,33 @@ public abstract class Expression {
             if (!Operator.SUBTRACTION.equals(((OperatorItem) item).operator))
                 continue;
 
-            if (i > 0 && i < list.size()-1) {
+            ParseItem replacementItem = null;
+            if (i == 0) {
+                if (list.size() > 1) {
+                    ParseItem nextItem = list.get(i+1);
+                    if (nextItem instanceof OperatorItem)
+                        continue;
+
+                    replacementItem = nextItem;
+                }
+            } else if (i < list.size()-1) {
                 ParseItem prevItem = list.get(i-1);
-                if (prevItem instanceof OperatorItem) {
+               if (prevItem instanceof OperatorItem) {
                     Operator operator = ((OperatorItem) prevItem).operator;
-                    if (Operator.EXPONENTIATION.equals(operator)) {
-                        ParseItem nextItem = list.get(i+1);
-
-                        List<ParseItem> subList = new ArrayList<>();
-                        subList.add(new ExpressionItem(new Scalar(-1)));
-                        subList.add(new OperatorItem(Operator.MULTIPLICATION));
-                        subList.add(nextItem);
-
-                        list.add(i, new BracketsItem(subList));
-                        list.remove(i+1);
-                        list.remove(i+1);
-                    }
+                    if (Operator.EXPONENTIATION.equals(operator))
+                        replacementItem = list.get(i+1);
                 }
             }
+
+            if (replacementItem != null) {
+                Expression replacementExpression = parseExpression(replacementItem);
+
+                list.add(i, new ExpressionItem(new Multiplication(new Scalar(-1), replacementExpression)));
+                list.remove(i+1);
+                list.remove(i+1);
+            }
         }
+
 
         // check operators
         for (int i=0; i<list.size(); i++) {
@@ -260,6 +316,23 @@ public abstract class Expression {
         }
 
 
+        // merge expressions without operator between them (multiplication)
+        for (int i=0; i<(list.size()-1); i++) {
+            ParseItem item = list.get(i);
+            if (!(item instanceof ExpressionItem))
+                continue;
+
+            ParseItem nextItem = list.get(i+1);
+            if (!(nextItem instanceof ExpressionItem))
+                continue;
+
+            list.add(i, new ExpressionItem(new Multiplication(((ExpressionItem) item).expression, ((ExpressionItem) nextItem).expression)));
+            list.remove(i+1);
+            list.remove(i+1);
+            i--;
+        }
+
+
         // parse addition
         for (int i=0; i<list.size(); i++) {
             ParseItem item = list.get(i);
@@ -312,44 +385,28 @@ public abstract class Expression {
 
 
 
-        return parseExpressions2(list);
-    }
-
-    private static Expression parseExpressions2 (List<ParseItem> list) throws ParseException {
-        if (list.size() == 1) {
-            ParseItem item = list.get(0);
-            //System.out.println("item: " + item);
-            if (item instanceof ExpressionItem) {
-                return ((ExpressionItem) item).expression;
-            } else if (item instanceof BracketsItem) {
-                List<ParseItem> tmp = ((BracketsItem) item).list;
-                //System.out.println("item->list: " + tmp.size());
-                return parseExpressions2(tmp);
-            } else if (item instanceof RawItem) {
-                String raw = ((RawItem) item).raw;
-                //System.out.println("item: " + raw);
-                for (Constant.C constant : Constant.C.values()) {
-                    if (raw.equals(constant.name()))
-                        return new Constant(constant);
-                }
-
-                if (NUMBER_PATTERN.matcher(raw).matches())
-                    return new Scalar(Double.parseDouble(raw));
-
-                if (VariableDefinition.checkName(raw))
-                    return new Variable(raw);
-            }
-        }
-
         /*
         System.out.println("list.size(): " + list.size());
+        printList(list, 0);
+        /*
         for (int i=0; i<list.size(); i++) {
             System.out.println("lst + " + i + ": " + list.get(i));
         }
+        */
         // */
 
-        throw new ParseException("invalid syntax", -1);
+        if (list.size() != 1)
+            throw new ParseException("invalid syntax", -1);
+
+
+        ParseItem item = list.get(0);
+        //System.out.println("item: " + item);
+        if (!(item instanceof ExpressionItem))
+            throw new ParseException("invalid syntax", -1);
+
+        return ((ExpressionItem) item).expression;
     }
+
 
     private static List<ParseItem> parseOperators (String text) throws ParseException {
         List<ParseItem> parsed = new ArrayList<>();
