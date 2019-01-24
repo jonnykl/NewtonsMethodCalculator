@@ -1,4 +1,5 @@
 import math.Expression;
+import math.FunctionDerivative;
 import math.Scalar;
 import math.VariableDefinition;
 import math.exception.EvaluationException;
@@ -9,17 +10,18 @@ public class NewtonsMethod {
 
     private Expression function;
     private Expression functionDerivative;
+    private String variableName;
 
     private double startValue;
     private double minimumPrecision;
     private int maximumIterationCount;
 
     private int iterationCount;
-    private double currentValue;
+    private double currentValueX, currentValueY;
 
 
-    public NewtonsMethod (Expression function, double startValue, double minimumPrecision, int maximumIterationCount) {
-        setFunction(function);
+    public NewtonsMethod (Expression function, String variableName, double startValue, double minimumPrecision, int maximumIterationCount) {
+        setFunction(function, variableName);
         setStartValue(startValue);
         setMinimumPrecision(minimumPrecision);
         setMaximumIterationCount(maximumIterationCount);
@@ -30,6 +32,10 @@ public class NewtonsMethod {
 
     public Expression getFunction () {
         return function;
+    }
+
+    public String getVariableName () {
+        return variableName;
     }
 
     public Expression getFunctionDerivative () {
@@ -48,13 +54,20 @@ public class NewtonsMethod {
         return maximumIterationCount;
     }
 
-    public double getCurrentValue () {
-        return currentValue;
+
+    public double getCurrentValueX () {
+        return currentValueX;
+    }
+
+    public double getCurrentValueY () {
+        return currentValueY;
     }
 
 
-    public boolean setFunction (Expression function) {
+    public boolean setFunction (Expression function, String variableName) {
         this.function = function;
+        this.variableName = variableName;
+
         return computeFunctionDerivative();
     }
 
@@ -76,8 +89,12 @@ public class NewtonsMethod {
 
 
     public boolean computeFunctionDerivative () {
-        // TODO
-        functionDerivative = null;
+        try {
+            functionDerivative = FunctionDerivative.compute(function, variableName);
+        } catch (UnsupportedOperationException e) {
+            e.printStackTrace();
+            functionDerivative = null;
+        }
 
         return functionDerivative != null;
     }
@@ -85,28 +102,40 @@ public class NewtonsMethod {
 
     public void reset () {
         iterationCount = 0;
-        currentValue = 0;
+
+        currentValueX = 0;
+        currentValueY = 0;
     }
 
     public boolean step () throws UnknownVariableException {
-        if (iterationCount >= maximumIterationCount)
+        if (maximumIterationCount > 0 && iterationCount >= maximumIterationCount)
             return true;
+
+        iterationCount++;
 
 
         VariableDefinition[] variables = new VariableDefinition[]{
-                new VariableDefinition("x", new Scalar(currentValue))
+                new VariableDefinition("x", new Scalar(currentValueX))
         };
 
         double a, b;
 
         try {
             a = function.evaluate(variables);
-            if (a == 0)
+            //System.out.println("a: " + a);
+            if (a == 0 || !Double.isFinite(a))
                 return true;
 
             b = functionDerivative.evaluate(variables);
-            if (b == 0)
+            //System.out.println("b: " + b + " -> " + functionDerivative);
+            if (b == 0 || !Double.isFinite(b))
                 return true;
+
+
+            currentValueX = currentValueX - a/b;
+
+            variables[0].setValue(new Scalar(currentValueX));
+            currentValueY = function.evaluate(variables);
         } catch (EvaluationException e) {
             if (e instanceof UnknownVariableException)
                 throw (UnknownVariableException) e;
@@ -114,10 +143,7 @@ public class NewtonsMethod {
             return true;
         }
 
-
-        currentValue = currentValue - a/b;
-
-        return currentValue <= minimumPrecision;
+        return currentValueY <= minimumPrecision || (maximumIterationCount > 0 && iterationCount >= maximumIterationCount);
     }
 
     public void run () throws UnknownVariableException {
