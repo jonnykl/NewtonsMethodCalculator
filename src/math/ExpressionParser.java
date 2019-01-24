@@ -11,10 +11,20 @@ import java.util.regex.Pattern;
 public class ExpressionParser {
 
     private static final Pattern NUMBER_PATTERN = Pattern.compile("^([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$");
+    private static final char[] ALL_OPERATORS = new char[]{'+', '-', '*', '/', '^'};
 
 
     public static Expression parse (String text) throws ParseException {
+        // remove all whitespaces
         text = text.replaceAll("\\s", "");
+
+        /*
+
+        - parseBrackets:        parse brackets and create list with the text splitted by brackets
+        - parseAllOperators:    split text elements of the list by operators
+        - parseExpressions:     parse all expressions within each brackets
+
+         */
 
         List<ParseItem> items = parseBrackets(text);
         items = parseAllOperators(items);
@@ -41,6 +51,7 @@ public class ExpressionParser {
         return newList;
     }
 
+    // method for debugging purposes
     private static void printList (List<ParseItem> list, int depth) {
         System.out.println("printList: " + list.size() + ", " + depth);
         for (ParseItem item : list) {
@@ -92,6 +103,26 @@ public class ExpressionParser {
     private static Expression parseExpressions (List<ParseItem> list) throws ParseException {
         if (list.size() == 0)
             throw new ParseException("unknown error", -1);
+
+
+        /*
+
+        steps in this function:
+        - parse brackets recursively (results in a almost flat list (maximum depth = 1))
+        - parse functions
+        - remove all brackets (results in a flat list)
+        - parse constants, scalars, variables
+        - parse unary use of sign operator
+        - check operators
+        - parse exponentiation
+        - parse multiplication
+        - parse division
+        - merge expressions without operator between them (multiplication)
+        - parse addition
+        - parse subtraction
+
+         */
+
 
 
         // parse brackets recursively
@@ -258,6 +289,7 @@ public class ExpressionParser {
             list.remove(i+1);
             list.remove(i+1);
             list.remove(i-1);
+            i--;
         }
 
 
@@ -283,6 +315,7 @@ public class ExpressionParser {
             list.remove(i+1);
             list.remove(i+1);
             list.remove(i-1);
+            i--;
         }
 
 
@@ -308,6 +341,7 @@ public class ExpressionParser {
             list.remove(i+1);
             list.remove(i+1);
             list.remove(i-1);
+            i--;
         }
 
 
@@ -350,6 +384,7 @@ public class ExpressionParser {
             list.remove(i+1);
             list.remove(i+1);
             list.remove(i-1);
+            i--;
         }
 
 
@@ -374,8 +409,10 @@ public class ExpressionParser {
 
             list.remove(i+1);
             list.remove(i+1);
-            if (i != 0)
-                list.remove(i-1);
+            if (i != 0) {
+                list.remove(i - 1);
+                i--;
+            }
         }
 
 
@@ -406,13 +443,10 @@ public class ExpressionParser {
     private static List<ParseItem> parseOperators (String text) throws ParseException {
         List<ParseItem> parsed = new ArrayList<>();
 
-
-        char[] operators = new char[]{'+', '-', '*', '/', '^'};
-
         int pos = 0;
         while (pos < text.length()) {
             int nextOperatorPos = -1;
-            for (char operator : operators) {
+            for (char operator : ALL_OPERATORS) {
                 int tmp = text.indexOf(operator, pos);
                 if (tmp == -1)
                     continue;
@@ -451,22 +485,6 @@ public class ExpressionParser {
     }
 
     private static List<ParseItem> parseBrackets (String text) throws ParseException {
-        /*
-        operations with operators:
-        - addition: +
-        - subtraction: -
-        - multiplication: *
-        - division: /
-        - exponentiation: ^
-
-        precedence (high to low):
-        1. ( )
-        2. ^
-        3. * /
-        4. + -
-
-        */
-
         List<ParseItem> parsed = new ArrayList<>();
 
         int pos = 0;
