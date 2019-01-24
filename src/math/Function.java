@@ -6,7 +6,7 @@ import math.exception.EvaluationException;
 public class Function extends Expression {
 
     public enum F {
-        sin, cos, ln, abs
+        sin, cos, tan, ln, abs, sqrt, round, ceil, floor
     }
 
 
@@ -52,11 +52,26 @@ public class Function extends Expression {
             case cos:
                 return Math.cos(parameter.evaluate(variables));
 
+            case tan:
+                return Math.tan(parameter.evaluate(variables));
+
             case ln:
                 return Math.log(parameter.evaluate(variables));
 
             case abs:
                 return Math.abs(parameter.evaluate(variables));
+
+            case sqrt:
+                return Math.sqrt(parameter.evaluate(variables));
+
+            case round:
+                return Math.round(parameter.evaluate(variables));
+
+            case ceil:
+                return Math.ceil(parameter.evaluate(variables));
+
+            case floor:
+                return Math.floor(parameter.evaluate(variables));
 
 
             default:
@@ -66,23 +81,7 @@ public class Function extends Expression {
 
     @Override
     public String toString () {
-        switch (function) {
-            case sin:
-                return "sin(" + parameter.toString() + ")";
-
-            case cos:
-                return "cos(" + parameter.toString() + ")";
-
-            case ln:
-                return "ln(" + parameter.toString() + ")";
-
-            case abs:
-                return "|" + parameter.toString() + "|";
-
-
-            default:
-                throw new UnknownError();
-        }
+        return function.name() + "(" + parameter.toString() + ")";
     }
 
 }

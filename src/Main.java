@@ -10,7 +10,7 @@ public class Main {
         test("(3 + ((3 * 3)))");
         test("(3) + 3 * 3");
         test("(3 + 3) * 3");
-        test("3-(3 * (((e)))^(-5.2 + 2*4) + cos(2*pi^-2)^(-1/2))");
+        test("3-(3 * (((e)))^(-5.2 + 2*4) + tan(2*pi^-2)^(-1/2))");
 
         /*
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
