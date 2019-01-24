@@ -3,13 +3,13 @@ package math;
 import math.exception.EvaluationException;
 
 
-public class Substraction extends Expression {
+public class Subtraction extends Expression {
 
     private Expression minuend;
     private Expression subtrahend;
 
 
-    public Substraction (Expression minuend, Expression subtrahend) {
+    public Subtraction (Expression minuend, Expression subtrahend) {
         setMinuend(minuend);
         setSubtrahend(subtrahend);
     }

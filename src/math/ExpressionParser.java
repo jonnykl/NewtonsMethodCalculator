@@ -415,7 +415,7 @@ public class ExpressionParser {
 
                 Expression minuend = minuendItem != null ? parseExpression(minuendItem) : new Scalar(0);
                 Expression subtrahend = parseExpression(subtrahendItem);
-                list.add(i, new ExpressionItem(new Substraction(minuend, subtrahend)));
+                list.add(i, new ExpressionItem(new Subtraction(minuend, subtrahend)));
 
                 list.remove(i+1);
                 list.remove(i+1);
