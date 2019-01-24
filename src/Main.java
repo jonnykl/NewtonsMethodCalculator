@@ -1,14 +1,16 @@
 import math.Expression;
+import math.exception.EvaluationException;
+import math.exception.ParseException;
 
 
 public class Main {
 
     public static void main (String[] args) {
-        Expression.parse("3 + (sin(2 * pi))  (3)");
-        Expression.parse("(3 + ((3 * 3)))");
-        Expression.parse("(3) + 3 * 3");
-        Expression.parse("(3 + 3) * 3");
-        Expression.parse("3-(3 * (((e)))^(-5.2 + 2*4) + cos(2*pi^-2)^(-1/2))");
+        test("3 + (sin(2 * pi))  (3)");
+        test("(3 + ((3 * 3)))");
+        test("(3) + 3 * 3");
+        test("(3 + 3) * 3");
+        test("3-(3 * (((e)))^(-5.2 + 2*4) + cos(2*pi^-2)^(-1/2))");
 
         /*
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -32,6 +34,15 @@ public class Main {
 
         }
         */
+    }
+
+    private static void test (String text) {
+        try {
+            Expression expression = Expression.parse(text);
+            System.out.println(expression + " = " + expression.evaluate());
+        } catch (ParseException | EvaluationException e) {
+            e.printStackTrace();
+        }
     }
 
 }
