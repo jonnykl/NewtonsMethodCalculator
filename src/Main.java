@@ -1,6 +1,5 @@
 import math.Expression;
-import math.VariableDefinition;
-import math.exception.EvaluationException;
+import math.FunctionDerivative;
 import math.exception.ParseException;
 
 
@@ -12,7 +11,9 @@ public class Main {
         //test("(3) + 3 * 3");
         //test("(3 + 3) * 3");
         //test("-(3 * (((e)))^(-5.2 + 2*4) + tan(2*pi^-2)^(-1/2))");
-        test("3x^2");
+        //test("3x^2");
+        test("3(x+2)^2 + 1/2x + 2");
+        test("ln(x)^2");
         test("3x^2 + 1/2x - 5 + 1/(2x*5y) + 2sin(pi/2)");
 
         /*
@@ -42,9 +43,11 @@ public class Main {
     private static void test (String text) {
         try {
             Expression expression = Expression.parse(text);
-            System.out.print(expression + " = ");
-            System.out.println(expression.evaluate(new VariableDefinition("x", 1), new VariableDefinition("y", 2)));
-        } catch (ParseException | EvaluationException e) {
+            System.out.println(expression.toString());
+
+            Expression derivation = FunctionDerivative.compute(expression, "x");
+            System.out.println(derivation.toString());
+        } catch (ParseException e) {
             e.printStackTrace();
         }
     }
