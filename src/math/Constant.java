@@ -30,8 +30,7 @@ public class Constant extends Expression {
     }
 
 
-    @Override
-    public double evaluate (VariableDefinition ...variables) throws EvaluationException {
+    public double getValue () {
         switch (constant) {
             case pi:
                 return Math.PI;
@@ -43,6 +42,12 @@ public class Constant extends Expression {
             default:
                 throw new UnknownError();
         }
+    }
+
+
+    @Override
+    public double evaluate (VariableDefinition ...variables) throws EvaluationException {
+        return getValue();
     }
 
     @Override
