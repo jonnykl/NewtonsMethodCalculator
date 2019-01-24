@@ -109,7 +109,32 @@ public abstract class Expression {
         }
 
 
-        // TODO function
+        // parse functions
+        for (int i=0; i<list.size(); i++) {
+            ParseItem item = list.get(i);
+            if (!(item instanceof RawItem))
+                continue;
+
+            if (i == list.size()-1)
+                continue;
+
+            ParseItem nextItem = list.get(i+1);
+            if (!(nextItem instanceof BracketsItem))
+                continue;
+
+            String name = ((RawItem) item).raw;
+            for (Function.F function : Function.F.values()) {
+                if  (name.equals(function.name())) {
+                    Expression parameter = parseExpressions(((BracketsItem) nextItem).list);
+                    list.add(i, new ExpressionItem(new Function(function, parameter)));
+
+                    break;
+                }
+            }
+
+            list.remove(i+1);
+            list.remove(i+1);
+        }
 
 
         // parse unary use of sign operator

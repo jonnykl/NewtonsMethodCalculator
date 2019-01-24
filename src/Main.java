@@ -4,8 +4,9 @@ import math.Expression;
 public class Main {
 
     public static void main (String[] args) {
+        Expression.parse("3 + sin(2 * pi) * 3");
         //Expression.parse("(3 + ((3 * 3)))");
-        Expression.parse("-3 * e^(-5.2 + 2*4) +2*pi^-2");
+        //Expression.parse("-3 * e^(-5.2 + 2*4) +2*pi^-2");
 
         /*
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
