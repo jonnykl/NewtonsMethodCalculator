@@ -1,4 +1,5 @@
 import math.Expression;
+import math.VariableDefinition;
 import math.exception.EvaluationException;
 import math.exception.ParseException;
 
@@ -42,7 +43,7 @@ public class Main {
         try {
             Expression expression = Expression.parse(text);
             System.out.print(expression + " = ");
-            System.out.println(expression.evaluate());
+            System.out.println(expression.evaluate(new VariableDefinition("x", 1), new VariableDefinition("y", 2)));
         } catch (ParseException | EvaluationException e) {
             e.printStackTrace();
         }

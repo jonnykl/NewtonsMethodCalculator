@@ -12,6 +12,10 @@ public class VariableDefinition {
     public Expression value;
 
 
+    public VariableDefinition (String name, double value) {
+        this(name, new Scalar(value));
+    }
+
     public VariableDefinition (String name, Expression value) {
         setName(name);
         setValue(value);
