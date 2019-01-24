@@ -464,8 +464,6 @@ public abstract class Expression {
         - division: /
         - exponentiation: ^
 
-        TODO: var func
-
         precedence (high to low):
         1. ( )
         2. ^
