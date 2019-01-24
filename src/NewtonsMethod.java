@@ -4,14 +4,11 @@ import math.VariableDefinition;
 import math.exception.EvaluationException;
 import math.exception.UnknownVariableException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class NewtonsMethod {
 
     private Expression function;
-    private Expression functionDerivation;
+    private Expression functionDerivative;
 
     private double startValue;
     private double minimumPrecision;
@@ -35,8 +32,8 @@ public class NewtonsMethod {
         return function;
     }
 
-    public Expression getFunctionDerivation () {
-        return functionDerivation;
+    public Expression getFunctionDerivative () {
+        return functionDerivative;
     }
 
     public double getStartValue () {
@@ -58,11 +55,11 @@ public class NewtonsMethod {
 
     public boolean setFunction (Expression function) {
         this.function = function;
-        return computeFunctionDerivation();
+        return computeFunctionDerivative();
     }
 
-    public void setFunctionDerivation (Expression functionDerivation) {
-        this.functionDerivation = functionDerivation;
+    public void setFunctionDerivative (Expression functionDerivative) {
+        this.functionDerivative = functionDerivative;
     }
 
     public void setStartValue (double startValue) {
@@ -78,11 +75,11 @@ public class NewtonsMethod {
     }
 
 
-    public boolean computeFunctionDerivation () {
+    public boolean computeFunctionDerivative () {
         // TODO
-        functionDerivation = null;
+        functionDerivative = null;
 
-        return functionDerivation != null;
+        return functionDerivative != null;
     }
 
 
@@ -107,7 +104,7 @@ public class NewtonsMethod {
             if (a == 0)
                 return true;
 
-            b = functionDerivation.evaluate(variables);
+            b = functionDerivative.evaluate(variables);
             if (b == 0)
                 return true;
         } catch (EvaluationException e) {
