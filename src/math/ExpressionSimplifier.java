@@ -30,7 +30,7 @@ public class ExpressionSimplifier {
                         simplify(((Subtraction) expression).getSubtrahend())
                 );
             } else if (expression instanceof Multiplication) {
-                expression = new Multiplication(
+                expression = new MultiplicationList(
                         simplify(((Multiplication) expression).getMultiplicand0()),
                         simplify(((Multiplication) expression).getMultiplicand1())
                 );
@@ -155,7 +155,36 @@ public class ExpressionSimplifier {
                     return base;
             }
 
-            // TODO: e^(ln(x)*y) = x^y
+            if (base instanceof Constant && Constant.C.e.equals(((Constant) base).getConstant()) && exponent instanceof MultiplicationList) {
+                Expression[] multiplicands = ((MultiplicationList) exponent).getMultiplicands();
+
+                Expression newBase = null;
+                Expression[] newMultiplicands = new Expression[multiplicands.length-1];
+                int idx = 0;
+
+                for (Expression multiplicand : multiplicands) {
+                    if (multiplicand instanceof Function && Function.F.ln.equals(((Function) multiplicand).getFunction())) {
+                        newBase = ((Function) multiplicand).getParameter();
+                        continue;
+                    }
+
+                    newMultiplicands[idx] = multiplicand;
+                    idx++;
+                }
+
+                if (newBase != null) {
+                    if (newMultiplicands.length == 0)
+                        return newBase;
+
+                    Expression newExponent;
+                    if (newMultiplicands.length == 1)
+                        newExponent = newMultiplicands[0];
+                    else
+                        newExponent = new MultiplicationList(newMultiplicands);
+
+                    return new Exponentiation(newBase, newExponent);
+                }
+            }
         }
 
         return expression;
@@ -191,9 +220,8 @@ public class ExpressionSimplifier {
             Expression subtrahend = ((Subtraction) expression).getSubtrahend();
 
             if (minuend instanceof Scalar && ((Scalar) minuend).getValue() == 0) {
-                return new Multiplication(
-                        new Scalar(-1),
-                        subtrahend
+                return new AdditionList(
+                        new AdditionList.Addend(subtrahend, true)
                 );
             }
 
