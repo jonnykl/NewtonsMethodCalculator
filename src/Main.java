@@ -1,15 +1,35 @@
+import math.Expression;
+import math.exception.ParseException;
+import math.exception.UnknownVariableException;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 
 public class Main {
 
     public static void main (String[] args) {
-        /*
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+        String functionText = requestInput(reader, "enter function: ");
+        String startValueText = requestInput(reader, "enter start value: ");
+        String minimumPrecisionText = requestInput(reader, "enter minimum precision: ");
+        String maximumIterationCountText = requestInput(reader, "enter maximum iteration count: ");
+
         try {
-            Expression function = Expression.parse("x^2 - 2x + 1");
-            //Expression derivative = Expression.parse("2x - 2");
-            NewtonsMethod newtonsMethod = new NewtonsMethod(function, "x", 0, 1e-20, 1000);
-            //newtonsMethod.setFunctionDerivative(derivative);
+            Expression function = Expression.parse(functionText);
+            double startValue = Double.parseDouble(startValueText);
+            double minimumPrecision = Double.parseDouble(minimumPrecisionText);
+            int maximumIterationCount = Integer.parseInt(maximumIterationCountText);
+
+            NewtonsMethod newtonsMethod = new NewtonsMethod(function, "x", startValue, minimumPrecision, maximumIterationCount);
+
+            System.out.println("function: " + newtonsMethod.getFunction());
             System.out.println("derivative: " + newtonsMethod.getFunctionDerivative());
+            System.out.println();
+
+
             while (true) {
                 boolean end = newtonsMethod.step();
 
@@ -20,34 +40,31 @@ public class Main {
                 if (end)
                     break;
             }
-        } catch (ParseException | UnknownVariableException e) {
+
+            boolean success = newtonsMethod.success();
+            System.out.println("success: " + success);
+        } catch (ParseException | UnknownVariableException | NumberFormatException e) {
             e.printStackTrace();
         }
-        // */
+    }
 
+    private static String requestInput (BufferedReader in, String message) {
+        String inputText;
 
-        /*
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print(message);
 
-        String functionText;
-        while (true) {
-            System.out.print("enter function: ");
-
-            try {
-                functionText = reader.readLine();
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-                return;
-            }
-
-            if (functionText == null)
-                System.exit(0);
-
-
-
+        try {
+            inputText = in.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+            return null;  // just to make IntelliJ happy
         }
-        */
+
+        if (inputText == null)
+            System.exit(0);
+
+        return inputText;
     }
 
 }
