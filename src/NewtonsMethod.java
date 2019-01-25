@@ -100,7 +100,7 @@ public class NewtonsMethod {
     public void reset () {
         iterationCount = 0;
 
-        currentValueX = 0;
+        currentValueX = startValue;
         currentValueY = 0;
     }
 
@@ -140,7 +140,7 @@ public class NewtonsMethod {
             return true;
         }
 
-        return currentValueY <= minimumPrecision || (maximumIterationCount > 0 && iterationCount >= maximumIterationCount);
+        return Math.abs(currentValueY) <= minimumPrecision || (maximumIterationCount > 0 && iterationCount >= maximumIterationCount);
     }
 
     public void run () throws UnknownVariableException {
