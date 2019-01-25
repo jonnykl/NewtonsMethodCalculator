@@ -125,8 +125,13 @@ public class ExpressionSimplifier {
             Expression dividend = ((Division) expression).getDividend();
             Expression divisor = ((Division) expression).getDividend();
 
-            if (dividend instanceof Scalar && divisor instanceof Scalar)
-                return new Scalar(((Scalar) dividend).getValue() / ((Scalar) divisor).getValue());
+            if (dividend instanceof Scalar && divisor instanceof Scalar) {
+                double dividendValue = ((Scalar) dividend).getValue();
+                double divisorValue = ((Scalar) divisor).getValue();
+
+                if (divisorValue != 0)
+                    return new Scalar(dividendValue / divisorValue);
+            }
         }
 
         return expression;
@@ -198,6 +203,10 @@ public class ExpressionSimplifier {
 
             if ((multiplicand0 instanceof Scalar && ((Scalar) multiplicand0).getValue() == 0) ||
                     (multiplicand1 instanceof Scalar && ((Scalar) multiplicand1).getValue() == 0))
+                return new Scalar(0);
+        } else if (expression instanceof Division) {
+            Expression dividend = ((Division) expression).getDividend();
+            if (dividend instanceof Scalar && ((Scalar) dividend).getValue() == 0)
                 return new Scalar(0);
         }
 
@@ -276,6 +285,10 @@ public class ExpressionSimplifier {
             for (Expression multiplicand : multiplicands) {
                 if (multiplicand instanceof Scalar) {
                     double value = ((Scalar) multiplicand).getValue();
+                    System.out.println("> " + value);
+                    if (Double.isNaN(value))
+                        return new Scalar(Double.NaN);
+
                     if (value == 0)
                         return new Scalar(0);
 
