@@ -1,7 +1,4 @@
-import math.Expression;
-import math.FunctionDerivative;
-import math.Scalar;
-import math.VariableDefinition;
+import math.*;
 import math.exception.EvaluationException;
 import math.exception.UnknownVariableException;
 
@@ -65,7 +62,7 @@ public class NewtonsMethod {
 
 
     public boolean setFunction (Expression function, String variableName) {
-        this.function = function;
+        this.function = ExpressionSimplifier.simplify(function);
         this.variableName = variableName;
 
         return computeFunctionDerivative();
@@ -90,7 +87,7 @@ public class NewtonsMethod {
 
     public boolean computeFunctionDerivative () {
         try {
-            functionDerivative = FunctionDerivative.compute(function, variableName);
+            functionDerivative = ExpressionSimplifier.simplify(FunctionDerivative.compute(function, variableName));
         } catch (UnsupportedOperationException e) {
             e.printStackTrace();
             functionDerivative = null;

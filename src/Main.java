@@ -1,5 +1,7 @@
 import math.Expression;
+import math.ExpressionSimplifier;
 import math.FunctionDerivative;
+import math.Scalar;
 import math.exception.ParseException;
 import math.exception.UnknownVariableException;
 
@@ -17,12 +19,18 @@ public class Main {
         //test("ln(x)^2");
         //test("3x^2 + 1/2x - 5 + 1/(2x*5y) + 2sin(pi/2)");
         //test("x^x");
+        //test("(x - 1)^2");
+        //test("x^(2*1)/1 + 0 * y");
+        //test("2^x");
+        test("(x-1)(x-2)");
 
+        /*
         try {
             Expression function = Expression.parse("x^2 - 2x + 1");
-            Expression derivative = Expression.parse("2x - 2");
+            //Expression derivative = Expression.parse("2x - 2");
             NewtonsMethod newtonsMethod = new NewtonsMethod(function, "x", 0, 1e-20, 1000);
-            newtonsMethod.setFunctionDerivative(derivative);
+            //newtonsMethod.setFunctionDerivative(derivative);
+            System.out.println("derivative: " + newtonsMethod.getFunctionDerivative());
             while (true) {
                 boolean end = newtonsMethod.step();
 
@@ -36,6 +44,7 @@ public class Main {
         } catch (ParseException | UnknownVariableException e) {
             e.printStackTrace();
         }
+        // */
 
 
         /*
@@ -67,8 +76,20 @@ public class Main {
             Expression expression = Expression.parse(text);
             System.out.println(expression.toString());
 
-            Expression derivation = FunctionDerivative.compute(expression, "x");
-            System.out.println(derivation.toString());
+            Expression simplified = ExpressionSimplifier.simplify(expression);
+            System.out.println(simplified.toString());
+
+
+            //*
+            System.out.println();
+
+
+            Expression derivative = FunctionDerivative.compute(expression, "x");
+            System.out.println(derivative.toString());
+
+            Expression simplifiedDerivative = ExpressionSimplifier.simplify(derivative);
+            System.out.println(simplifiedDerivative.toString());
+            // */
         } catch (ParseException e) {
             e.printStackTrace();
         }
