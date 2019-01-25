@@ -19,9 +19,9 @@ public class ExpressionSimplifier {
             expression = removeNeutralElement(expression);
             expression = removeZeroMultiplication(expression);
             expression = simplifyExponentiation(expression);
-            expression = evaluateBasicOperations(expression);
             expression = reduceFraction(expression);
             expression = mergeExponentiation(expression);
+            expression = evaluateBasicOperations(expression);
 
 
 
@@ -400,6 +400,15 @@ public class ExpressionSimplifier {
 
                 if (divisorValue != 0)
                     return new Scalar(dividendValue / divisorValue);
+            }
+        } else if (expression instanceof Exponentiation) {
+            Expression base = ((Exponentiation) expression).getBase();
+            Expression exponent = ((Exponentiation) expression).getExponent();
+
+            if (base instanceof Scalar && exponent instanceof Scalar) {
+                double value = Math.pow(((Scalar) base).getValue(), ((Scalar) exponent).getValue());
+                if (Double.isFinite(value))
+                    return new Scalar(value);
             }
         }
 
