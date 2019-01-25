@@ -652,7 +652,7 @@ public class ExpressionSimplifier {
         } else if (expression instanceof AdditionList) {
             AdditionList.Addend[] addends = ((AdditionList) expression).getAddends();
             for (AdditionList.Addend addend : addends)
-                addToAdditionList(additionList, simplifyLists(addend.expression), addend.subtract);
+                addToAdditionList(additionList, simplifyLists(addend.expression), subtract != addend.subtract);
         } else {
             additionList.addAddend(new AdditionList.Addend(expression, subtract));
         }
