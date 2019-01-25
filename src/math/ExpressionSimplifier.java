@@ -95,6 +95,61 @@ public class ExpressionSimplifier {
     }
 
 
+    private static String indent (int n) {
+        StringBuilder x = new StringBuilder();
+        for (int i=0; i<n; i++)
+            x.append("    ");
+
+        return x.toString();
+    }
+
+    private static void indentPrint (String str, int n) {
+        System.out.println(indent(n) + str);
+    }
+
+    private static void printExpression (Expression expression, int depth) {
+        indentPrint(expression.getClass().getSimpleName() + " {", depth);
+
+        if (expression instanceof Addition) {
+            printExpression(((Addition) expression).getAddend0(), depth+1);
+            printExpression(((Addition) expression).getAddend1(), depth+1);
+        } else if (expression instanceof Subtraction) {
+            printExpression(((Subtraction) expression).getMinuend(), depth+1);
+            printExpression(((Subtraction) expression).getSubtrahend(), depth+1);
+        } else if (expression instanceof Multiplication) {
+            printExpression(((Multiplication) expression).getMultiplicand0(), depth+1);
+            printExpression(((Multiplication) expression).getMultiplicand1(), depth+1);
+        } else if (expression instanceof Division) {
+            printExpression(((Division) expression).getDividend(), depth+1);
+            printExpression(((Division) expression).getDivisor(), depth+1);
+        } else if (expression instanceof Exponentiation) {
+            printExpression(((Exponentiation) expression).getBase(), depth+1);
+            printExpression(((Exponentiation) expression).getExponent(), depth+1);
+        } else if (expression instanceof Function) {
+            indentPrint(((Function) expression).getFunction().name(), depth+1);
+            printExpression(((Function) expression).getParameter(), depth+1);
+        } else if (expression instanceof AdditionList) {
+            for (AdditionList.Addend addend : ((AdditionList) expression).getAddends()) {
+                indentPrint(!addend.subtract ? "ADD" : "SUBTRACT", depth+1);
+                printExpression(addend.expression, depth+1);
+            }
+        } else if (expression instanceof MultiplicationList) {
+            for (Expression multiplicand : ((MultiplicationList) expression).getMultiplicands())
+                printExpression(multiplicand, depth+1);
+        } else if (expression instanceof Constant) {
+            indentPrint(((Constant) expression).getConstant().name() + " -> " + ((Constant) expression).getValue(), depth+1);
+        } else if (expression instanceof Variable) {
+            indentPrint(((Variable) expression).getName(), depth+1);
+        } else if (expression instanceof Scalar) {
+            indentPrint(Double.toString(((Scalar) expression).getValue()), depth+1);
+        } else {
+            indentPrint("not yet implemented", depth+1);
+        }
+
+        indentPrint("}", depth);
+    }
+
+
     private static Expression mergeExponentiation (Expression expression) {
         if (expression instanceof MultiplicationList) {
             List<Expression> dividendList = new ArrayList<>();
