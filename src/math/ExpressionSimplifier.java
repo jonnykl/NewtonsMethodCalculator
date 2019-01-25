@@ -214,6 +214,59 @@ public class ExpressionSimplifier {
 
             if (divisor instanceof Scalar && ((Scalar) divisor).getValue() == 1)
                 return dividend;
+        } else if (expression instanceof AdditionList) {
+            AdditionList.Addend[] addends = ((AdditionList) expression).getAddends();
+
+            double allScalars = 0;
+
+            AdditionList additionList = new AdditionList();
+            for (AdditionList.Addend addend : addends) {
+                Expression tmp = addend.expression;
+                if (tmp instanceof Scalar) {
+                    allScalars += (addend.subtract ? -1 : 1) * ((Scalar) tmp).getValue();
+                    continue;
+                }
+
+                additionList.addAddend(addend);
+            }
+
+            if (allScalars != 0)
+                additionList.addAddend(new AdditionList.Addend(new Scalar(allScalars < 0 ? -allScalars : allScalars), allScalars < 0));
+
+            if (additionList.getAddends().length == 0)
+                return new Scalar(0);
+            else if (additionList.getAddends().length == 1 && !additionList.getAddends()[0].subtract)
+                return additionList.getAddends()[0].expression;
+
+            return additionList;
+        } else if (expression instanceof MultiplicationList) {
+            Expression[] multiplicands = ((MultiplicationList) expression).getMultiplicands();
+
+            double allScalars = 1;
+
+            MultiplicationList multiplicationList = new MultiplicationList();
+            for (Expression multiplicand : multiplicands) {
+                if (multiplicand instanceof Scalar) {
+                    double value = ((Scalar) multiplicand).getValue();
+                    if (value == 0)
+                        return new Scalar(0);
+
+                    allScalars *= value;
+                    continue;
+                }
+
+                multiplicationList.addMultiplicand(multiplicand);
+            }
+
+            if (allScalars != 1)
+                multiplicationList.addMultiplicand(new Scalar(allScalars));
+
+            if (multiplicationList.getMultiplicands().length == 0)
+                return new Scalar(1);
+            else if (multiplicationList.getMultiplicands().length == 1)
+                return multiplicationList.getMultiplicands()[0];
+
+            return multiplicationList;
         }
 
         return expression;
