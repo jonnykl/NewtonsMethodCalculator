@@ -50,20 +50,12 @@ public class FunctionDerivative {
         Expression base = function.getBase();
         Expression exponent = function.getExponent();
 
-        /*
-        if (!(base instanceof Variable || base instanceof Scalar || base instanceof Constant))
-            throw new UnsupportedOperationException("not implemented yet; base must be variable, scalar or a constant");
-        // */
-
-
         if (base instanceof Constant && Constant.C.e.equals(((Constant) base).getConstant())) {
             return new Multiplication(
                     compute(exponent, variableName),
                     function
             );
-        } else /*if (base instanceof Variable || base instanceof Constant)*/ {
-            // x^2, x^x, y^2, y^x
-
+        } else {
             return exponentiation(new Exponentiation(
                     new Constant(Constant.C.e),
                     new Multiplication(
@@ -71,45 +63,7 @@ public class FunctionDerivative {
                             exponent
                     )
             ), variableName);
-
-            /*
-            if (variableName.equals(((Variable) base).getName())) {
-                // x^2, x^x
-                if (exponent instanceof Scalar || exponent instanceof Constant) {
-                    return new Multiplication(
-                            exponent,
-                            new Exponentiation(base, new Subtraction(exponent, new Scalar(1)))
-                    );
-                } else {
-                    throw new UnsupportedOperationException("not implemented yet");
-                    / *
-                    return new Multiplication(
-                            compute(exponent, variableName),
-                            new Multiplication(
-                                    exponent,
-                                    new Exponentiation(base, new Subtraction(exponent, new Scalar(1)))
-                            )
-                    );
-                    * /
-                }
-            } else {
-                // y^2, y^x
-                // (a^b)' = ln(a) * a^b
-                return new Multiplication(
-                        new Function(Function.F.ln, base),
-                        new Exponentiation(base, exponent)
-                );
-            }
-            */
         }
-
-        /*
-
-        (3x^2 + 5x)^(2x)
-
-         */
-
-        //throw new UnsupportedOperationException("not implemented yet");
     }
 
     private static Expression multiplication (Multiplication function, String variableName) {
