@@ -161,34 +161,38 @@ public class ExpressionSimplifier {
                     return base;
             }
 
-            if (base instanceof Constant && Constant.C.e.equals(((Constant) base).getConstant()) && exponent instanceof MultiplicationList) {
-                Expression[] multiplicands = ((MultiplicationList) exponent).getMultiplicands();
+            if (base instanceof Constant && Constant.C.e.equals(((Constant) base).getConstant())) {
+                if (exponent instanceof MultiplicationList) {
+                    Expression[] multiplicands = ((MultiplicationList) exponent).getMultiplicands();
 
-                Expression newBase = null;
-                Expression[] newMultiplicands = new Expression[multiplicands.length-1];
-                int idx = 0;
+                    Expression newBase = null;
+                    Expression[] newMultiplicands = new Expression[multiplicands.length-1];
+                    int idx = 0;
 
-                for (Expression multiplicand : multiplicands) {
-                    if (multiplicand instanceof Function && Function.F.ln.equals(((Function) multiplicand).getFunction())) {
-                        newBase = ((Function) multiplicand).getParameter();
-                        continue;
+                    for (Expression multiplicand : multiplicands) {
+                        if (multiplicand instanceof Function && Function.F.ln.equals(((Function) multiplicand).getFunction())) {
+                            newBase = ((Function) multiplicand).getParameter();
+                            continue;
+                        }
+
+                        newMultiplicands[idx] = multiplicand;
+                        idx++;
                     }
 
-                    newMultiplicands[idx] = multiplicand;
-                    idx++;
-                }
+                    if (newBase != null) {
+                        if (newMultiplicands.length == 0)
+                            return newBase;
 
-                if (newBase != null) {
-                    if (newMultiplicands.length == 0)
-                        return newBase;
+                        Expression newExponent;
+                        if (newMultiplicands.length == 1)
+                            newExponent = newMultiplicands[0];
+                        else
+                            newExponent = new MultiplicationList(newMultiplicands);
 
-                    Expression newExponent;
-                    if (newMultiplicands.length == 1)
-                        newExponent = newMultiplicands[0];
-                    else
-                        newExponent = new MultiplicationList(newMultiplicands);
-
-                    return new Exponentiation(newBase, newExponent);
+                        return new Exponentiation(newBase, newExponent);
+                    }
+                } else if (exponent instanceof Function && Function.F.ln.equals(((Function) exponent).getFunction())) {
+                    return ((Function) exponent).getParameter();
                 }
             }
         }
