@@ -37,6 +37,37 @@ public class MultiplicationList extends Expression {
     }
 
 
+    @Override
+    public boolean equals (Object obj) {
+        if (obj == this)
+            return true;
+
+        if (!(obj instanceof MultiplicationList))
+            return false;
+
+
+        MultiplicationList multiplicationList0 = this;
+        MultiplicationList multiplicationList1 = (MultiplicationList) obj;
+
+        if (multiplicationList0.multiplicands.size() != multiplicationList1.multiplicands.size())
+            return false;
+
+        for (int i=0; i<multiplicationList0.multiplicands.size(); i++) {
+            Expression multiplicand0 = multiplicationList0.multiplicands.get(i);
+            Expression multiplicand1 = multiplicationList1.multiplicands.get(i);
+
+            if (!multiplicand0.equals(multiplicand1))
+                return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode () {
+        return 0;
+    }
+
 
     @Override
     public double evaluate (VariableDefinition... variables) throws EvaluationException {

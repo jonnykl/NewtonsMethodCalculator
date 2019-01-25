@@ -84,6 +84,16 @@ public abstract class Expression {
                 return false;
 
             return ((Variable) expression0).getName().equals(((Variable) expression1).getName());
+        } else if (expression0 instanceof AdditionList) {
+            if (!(expression1 instanceof AdditionList))
+                return false;
+
+            return expression0.equals(expression1);
+        } else if (expression0 instanceof MultiplicationList) {
+            if (!(expression1 instanceof MultiplicationList))
+                return false;
+
+            return expression0.equals(expression1);
         } else {
             throw new UnknownError();
         }

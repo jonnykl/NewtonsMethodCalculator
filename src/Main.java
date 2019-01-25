@@ -21,7 +21,7 @@ public class Main {
         //test("x^(2*1)/1 + 0 * y");
         //test("2^x");
         //test("(x-1)(x-2)");
-        Expression expression = new MultiplicationList(
+        Expression expression0 = new MultiplicationList(
                 new Scalar(1),
                 new Constant(Constant.C.pi),
                 new Function(Function.F.sin, new Division(
@@ -30,12 +30,26 @@ public class Main {
                 )),
                 new Scalar(-5)
         );
+        Expression expression1 = new MultiplicationList(
+                new Scalar(1),
+                new Constant(Constant.C.pi),
+                new Function(Function.F.sin, new Division(
+                        new Constant(Constant.C.pi),
+                        new Scalar(2)
+                )),
+                new Scalar(-5)
+        );
+        Expression expression2 = new MultiplicationList(
+                new Scalar(1),
+                new Constant(Constant.C.pi),
+                new Function(Function.F.sin, new Division(
+                        new Constant(Constant.C.pi),
+                        new Scalar(2)
+                )),
+                new Scalar(-6)
+        );
 
-        try {
-            System.out.println("" + expression.toString() + " = " + expression.evaluate());
-        } catch (EvaluationException e) {
-            e.printStackTrace();
-        }
+        System.out.println(expression0.equals(expression1) + ", " + expression0.equals(expression2));
 
         /*
         try {

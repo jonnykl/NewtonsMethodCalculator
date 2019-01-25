@@ -54,6 +54,40 @@ public class AdditionList extends Expression {
     }
 
 
+    @Override
+    public boolean equals (Object obj) {
+        if (obj == this)
+            return true;
+
+        if (!(obj instanceof AdditionList))
+            return false;
+
+
+        AdditionList additionList0 = this;
+        AdditionList additionList1 = (AdditionList) obj;
+
+        if (additionList0.addends.size() != additionList1.addends.size())
+            return false;
+
+        for (int i=0; i<additionList0.addends.size(); i++) {
+            Addend addend0 = additionList0.addends.get(i);
+            Addend addend1 = additionList1.addends.get(i);
+
+            if (addend0.subtract != addend1.subtract)
+                return false;
+
+            if (!addend0.expression.equals(addend1.expression))
+                return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode () {
+        return 0;
+    }
+
 
     @Override
     public double evaluate (VariableDefinition... variables) throws EvaluationException {
