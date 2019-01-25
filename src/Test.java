@@ -1,6 +1,8 @@
 import math.Expression;
 import math.ExpressionSimplifier;
 import math.FunctionDerivative;
+import math.VariableDefinition;
+import math.exception.EvaluationException;
 import math.exception.ParseException;
 
 
@@ -30,7 +32,8 @@ public class Test {
         //test("(((((1.0 * (1.0 / x)) * (2.0)) + (ln(x) * 0.0)) * (e^(ln(x) * 2.0))) - ((0.0 * (x)) + (2.0 * 1.0)) + 0.0)");
         //test("(((ln(tan(((pi^(-2.0)) * 2.0))) * (1.0 / 4.0)) * tan(((pi^(-2.0)) * 2.0))) * (-1.0))");
         //test("(2x + 1)^sin(x/2)");
-        test("abs(sin(x^3)-0.2)");
+        //test("abs(sin(x^3)-0.2)");
+        testEval("cos(x) - e^x", 0.1);
 
 
         /*
@@ -66,13 +69,30 @@ public class Test {
         */
     }
 
+
+    private static void testEval (String text, double xValue) {
+        try {
+            Expression expression = Expression.parse(text);
+            System.out.println(expression.toString());
+
+            Expression simplified = ExpressionSimplifier.simplify(expression);
+            System.out.println(simplified.toString());
+
+
+            double yValue = expression.evaluate(new VariableDefinition("x", xValue));
+            System.out.println("= " + yValue);
+        } catch (ParseException | EvaluationException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void test (String text) {
         try {
             Expression expression = Expression.parse(text);
             System.out.println(expression.toString());
 
-            //Expression simplified = ExpressionSimplifier.simplify(expression);
-            //System.out.println(simplified.toString());
+            Expression simplified = ExpressionSimplifier.simplify(expression);
+            System.out.println(simplified.toString());
 
 
             //*
