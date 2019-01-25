@@ -16,6 +16,8 @@ public class NewtonsMethod {
     private int iterationCount;
     private double currentValueX, currentValueY;
 
+    private boolean error;
+
 
     public NewtonsMethod (Expression function, String variableName, double startValue, double minimumPrecision, int maximumIterationCount) {
         setFunction(function, variableName);
@@ -102,6 +104,8 @@ public class NewtonsMethod {
 
         currentValueX = startValue;
         currentValueY = 0;
+
+        error = false;
     }
 
     public boolean step () throws UnknownVariableException {
@@ -120,13 +124,20 @@ public class NewtonsMethod {
         try {
             a = function.evaluate(variables);
             //System.out.println("a: " + a);
-            if (a == 0 || !Double.isFinite(a))
+            if (!Double.isFinite(a)) {
+                error = true;
+                return true;
+            }
+
+            if (a == 0)
                 return true;
 
             b = functionDerivative.evaluate(variables);
             //System.out.println("b: " + b + " -> " + functionDerivative);
-            if (b == 0 || !Double.isFinite(b))
+            if (b == 0 || !Double.isFinite(b)) {
+                error = true;
                 return true;
+            }
 
 
             currentValueX = currentValueX - a/b;
@@ -149,6 +160,11 @@ public class NewtonsMethod {
             if (stop)
                 break;
         }
+    }
+
+
+    public boolean success () {
+        return iterationCount > 0 && !error && Math.abs(currentValueY) <= minimumPrecision;
     }
 
 }
