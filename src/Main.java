@@ -1,7 +1,5 @@
-import math.Expression;
-import math.ExpressionSimplifier;
-import math.FunctionDerivative;
-import math.Scalar;
+import math.*;
+import math.exception.EvaluationException;
 import math.exception.ParseException;
 import math.exception.UnknownVariableException;
 
@@ -22,7 +20,22 @@ public class Main {
         //test("(x - 1)^2");
         //test("x^(2*1)/1 + 0 * y");
         //test("2^x");
-        test("(x-1)(x-2)");
+        //test("(x-1)(x-2)");
+        Expression expression = new MultiplicationList(
+                new Scalar(1),
+                new Constant(Constant.C.pi),
+                new Function(Function.F.sin, new Division(
+                        new Constant(Constant.C.pi),
+                        new Scalar(2)
+                )),
+                new Scalar(-5)
+        );
+
+        try {
+            System.out.println("" + expression.toString() + " = " + expression.evaluate());
+        } catch (EvaluationException e) {
+            e.printStackTrace();
+        }
 
         /*
         try {
