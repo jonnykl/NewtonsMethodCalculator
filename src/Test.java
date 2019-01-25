@@ -67,6 +67,33 @@ public class Test {
 
         System.out.println(expression0.equals(expression1) + ", " + expression0.equals(expression2));
         */
+
+
+        /*
+        try {
+            Expression function = Expression.parse("sin(x) - e^x + 2");
+            //Expression function = Expression.parse("(x - 1)^2");
+            NewtonsMethod newtonsMethod = new NewtonsMethod(function, "x", 0.1, 1e-5, 1000);
+
+            System.out.println("function: " + newtonsMethod.getFunction());
+            System.out.println("derivative: " + newtonsMethod.getFunctionDerivative());
+            System.out.println();
+
+
+            while (true) {
+                boolean end = newtonsMethod.step();
+
+                System.out.println("x: " + newtonsMethod.getCurrentValueX());
+                System.out.println("y: " + newtonsMethod.getCurrentValueY());
+                System.out.println();
+
+                if (end)
+                    break;
+            }
+        } catch (ParseException | UnknownVariableException e) {
+            e.printStackTrace();
+        }
+        // */
     }
 
 
