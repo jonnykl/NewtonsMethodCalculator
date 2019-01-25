@@ -11,6 +11,7 @@ public class ExpressionSimplifier {
         for (int i=0; i<MAX_ITERATIONS; i++) {
             prevExpression = expression;
 
+            expression = simplifyLists(expression);
             expression = removeNeutralElement(expression);
             expression = removeZeroMultiplication(expression);
             expression = simplifyExponentiation(expression);
@@ -285,7 +286,6 @@ public class ExpressionSimplifier {
             for (Expression multiplicand : multiplicands) {
                 if (multiplicand instanceof Scalar) {
                     double value = ((Scalar) multiplicand).getValue();
-                    System.out.println("> " + value);
                     if (Double.isNaN(value))
                         return new Scalar(Double.NaN);
 
@@ -311,6 +311,147 @@ public class ExpressionSimplifier {
         }
 
         return expression;
+    }
+
+    
+    
+    public static Expression simplifyLists (Expression expression) {
+        if (expression instanceof Addition) {
+            Expression addend0 = ((Addition) expression).getAddend0();
+            Expression addend1 = ((Addition) expression).getAddend1();
+
+            addend0 = simplifyLists(addend0);
+            addend1 = simplifyLists(addend1);
+
+            AdditionList additionList = new AdditionList();
+
+            if (addend0 instanceof AdditionList) {
+                for (AdditionList.Addend addend : ((AdditionList) addend0).getAddends())
+                    additionList.addAddend(addend);
+            } else {
+                additionList.addAddend(new AdditionList.Addend(addend0, false));
+            }
+
+            if (addend1 instanceof AdditionList) {
+                for (AdditionList.Addend addend : ((AdditionList) addend1).getAddends())
+                    additionList.addAddend(addend);
+            } else {
+                additionList.addAddend(new AdditionList.Addend(addend1, false));
+            }
+
+            return additionList;
+        } else if (expression instanceof Subtraction) {
+            Expression minuend = ((Subtraction) expression).getMinuend();
+            Expression subtrahend = ((Subtraction) expression).getSubtrahend();
+
+            minuend = simplifyLists(minuend);
+            subtrahend = simplifyLists(subtrahend);
+
+            AdditionList additionList = new AdditionList();
+
+            if (minuend instanceof AdditionList) {
+                for (AdditionList.Addend addend : ((AdditionList) minuend).getAddends())
+                    additionList.addAddend(addend);
+            } else {
+                additionList.addAddend(new AdditionList.Addend(minuend, false));
+            }
+
+            if (subtrahend instanceof AdditionList) {
+                for (AdditionList.Addend addend : ((AdditionList) subtrahend).getAddends())
+                    additionList.addAddend(new AdditionList.Addend(addend.expression, !addend.subtract));
+            } else {
+                additionList.addAddend(new AdditionList.Addend(subtrahend, true));
+            }
+
+            return additionList;
+        } else if (expression instanceof Multiplication) {
+            Expression multiplicand0 = ((Multiplication) expression).getMultiplicand0();
+            Expression multiplicand1 = ((Multiplication) expression).getMultiplicand1();
+
+            multiplicand0 = simplifyLists(multiplicand0);
+            multiplicand1 = simplifyLists(multiplicand1);
+
+            MultiplicationList multiplicationList = new MultiplicationList();
+
+            if (multiplicand0 instanceof MultiplicationList) {
+                for (Expression multiplicand : ((MultiplicationList) multiplicand0).getMultiplicands())
+                    multiplicationList.addMultiplicand(multiplicand);
+            } else {
+                multiplicationList.addMultiplicand(multiplicand0);
+            }
+
+            if (multiplicand1 instanceof MultiplicationList) {
+                for (Expression multiplicand : ((MultiplicationList) multiplicand1).getMultiplicands())
+                    multiplicationList.addMultiplicand(multiplicand);
+            } else {
+                multiplicationList.addMultiplicand(multiplicand1);
+            }
+
+            return multiplicationList;
+        } else if (expression instanceof Division) {
+            Expression dividend = ((Division) expression).getDividend();
+            Expression divisor = ((Division) expression).getDivisor();
+
+            return new Division(
+                    simplifyLists(dividend),
+                    simplifyLists(divisor)
+            );
+        } else if (expression instanceof Exponentiation) {
+            Expression base = ((Exponentiation) expression).getBase();
+            Expression exponent = ((Exponentiation) expression).getExponent();
+
+            return new Exponentiation(
+                    simplifyLists(base),
+                    simplifyLists(exponent)
+            );
+        } else if (expression instanceof Function) {
+            Function.F function = ((Function) expression).getFunction();
+            Expression parameter = ((Function) expression).getParameter();
+
+            return new Function(
+                    function,
+                    simplifyLists(parameter)
+            );
+        } else if (expression instanceof AdditionList) {
+            AdditionList additionList = new AdditionList();
+            addToAdditionList(additionList, expression, false);
+            return additionList;
+        } else if (expression instanceof MultiplicationList) {
+            MultiplicationList multiplicationList = new MultiplicationList();
+            addToMultiplicationList(multiplicationList, expression);
+            return multiplicationList;
+        }
+
+        return expression;
+    }
+
+    private static void addToAdditionList (AdditionList additionList, Expression expression, boolean subtract) {
+        if (expression instanceof Addition) {
+            addToAdditionList(additionList, simplifyLists(((Addition) expression).getAddend0()), false);
+            addToAdditionList(additionList, simplifyLists(((Addition) expression).getAddend1()), false);
+        } else if (expression instanceof Subtraction) {
+            addToAdditionList(additionList, simplifyLists(((Subtraction) expression).getMinuend()), false);
+            addToAdditionList(additionList, simplifyLists(((Subtraction) expression).getSubtrahend()), true);
+        } else if (expression instanceof AdditionList) {
+            AdditionList.Addend[] addends = ((AdditionList) expression).getAddends();
+            for (AdditionList.Addend addend : addends)
+                addToAdditionList(additionList, simplifyLists(addend.expression), addend.subtract);
+        } else {
+            additionList.addAddend(new AdditionList.Addend(expression, subtract));
+        }
+    }
+
+    private static void addToMultiplicationList (MultiplicationList multiplicationList, Expression expression) {
+        if (expression instanceof Multiplication) {
+            addToMultiplicationList(multiplicationList, simplifyLists(((Multiplication) expression).getMultiplicand0()));
+            addToMultiplicationList(multiplicationList, simplifyLists(((Multiplication) expression).getMultiplicand1()));
+        } else if (expression instanceof MultiplicationList) {
+            Expression[] multiplicands = ((MultiplicationList) expression).getMultiplicands();
+            for (Expression multiplicand : multiplicands)
+                addToMultiplicationList(multiplicationList, simplifyLists(multiplicand));
+        } else {
+            multiplicationList.addMultiplicand(expression);
+        }
     }
 
 }

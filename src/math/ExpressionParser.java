@@ -24,7 +24,7 @@ public class ExpressionParser {
         - parseBrackets:        parse brackets and create list with the text splitted by brackets
         - parseAllOperators:    split text elements of the list by operators
         - parseExpressions:     parse all expressions within each brackets
-        - parseLists            simplify concatenated additions/subtractions and multiplications
+        - simplifyLists         simplify concatenated additions/subtractions and multiplications
 
          */
 
@@ -32,113 +32,12 @@ public class ExpressionParser {
         items = parseAllOperators(items);
         //printList(items, 0);
         Expression expression = parseExpressions(items);
-        expression = parseLists(expression);
+        expression = ExpressionSimplifier.simplifyLists(expression);
 
         return expression;
     }
 
 
-    private static Expression parseLists (Expression expression) {
-        if (expression instanceof Addition) {
-            Expression addend0 = ((Addition) expression).getAddend0();
-            Expression addend1 = ((Addition) expression).getAddend1();
-
-            addend0 = parseLists(addend0);
-            addend1 = parseLists(addend1);
-
-            AdditionList additionList = new AdditionList();
-
-            if (addend0 instanceof AdditionList) {
-                for (AdditionList.Addend addend : ((AdditionList) addend0).getAddends())
-                    additionList.addAddend(addend);
-            } else {
-                additionList.addAddend(new AdditionList.Addend(addend0, false));
-            }
-
-            if (addend1 instanceof AdditionList) {
-                for (AdditionList.Addend addend : ((AdditionList) addend1).getAddends())
-                    additionList.addAddend(addend);
-            } else {
-                additionList.addAddend(new AdditionList.Addend(addend1, false));
-            }
-
-            return additionList;
-        } else if (expression instanceof Subtraction) {
-            Expression minuend = ((Subtraction) expression).getMinuend();
-            Expression subtrahend = ((Subtraction) expression).getSubtrahend();
-
-            minuend = parseLists(minuend);
-            subtrahend = parseLists(subtrahend);
-
-            AdditionList additionList = new AdditionList();
-
-            if (minuend instanceof AdditionList) {
-                for (AdditionList.Addend addend : ((AdditionList) minuend).getAddends())
-                    additionList.addAddend(addend);
-            } else {
-                additionList.addAddend(new AdditionList.Addend(minuend, false));
-            }
-
-            if (subtrahend instanceof AdditionList) {
-                for (AdditionList.Addend addend : ((AdditionList) subtrahend).getAddends())
-                    additionList.addAddend(new AdditionList.Addend(addend.expression, !addend.subtract));
-            } else {
-                additionList.addAddend(new AdditionList.Addend(subtrahend, true));
-            }
-
-            return additionList;
-        } else if (expression instanceof Multiplication) {
-            Expression multiplicand0 = ((Multiplication) expression).getMultiplicand0();
-            Expression multiplicand1 = ((Multiplication) expression).getMultiplicand1();
-
-            multiplicand0 = parseLists(multiplicand0);
-            multiplicand1 = parseLists(multiplicand1);
-
-            MultiplicationList multiplicationList = new MultiplicationList();
-
-            if (multiplicand0 instanceof MultiplicationList) {
-                for (Expression multiplicand : ((MultiplicationList) multiplicand0).getMultiplicands())
-                    multiplicationList.addMultiplicand(multiplicand);
-            } else {
-                multiplicationList.addMultiplicand(multiplicand0);
-            }
-
-            if (multiplicand1 instanceof MultiplicationList) {
-                for (Expression multiplicand : ((MultiplicationList) multiplicand1).getMultiplicands())
-                    multiplicationList.addMultiplicand(multiplicand);
-            } else {
-                multiplicationList.addMultiplicand(multiplicand1);
-            }
-
-            return multiplicationList;
-        } else if (expression instanceof Division) {
-            Expression dividend = ((Division) expression).getDividend();
-            Expression divisor = ((Division) expression).getDivisor();
-
-            return new Division(
-                    parseLists(dividend),
-                    parseLists(divisor)
-            );
-        } else if (expression instanceof Exponentiation) {
-            Expression base = ((Exponentiation) expression).getBase();
-            Expression exponent = ((Exponentiation) expression).getExponent();
-
-            return new Exponentiation(
-                    parseLists(base),
-                    parseLists(exponent)
-            );
-        } else if (expression instanceof Function) {
-            Function.F function = ((Function) expression).getFunction();
-            Expression parameter = ((Function) expression).getParameter();
-
-            return new Function(
-                    function,
-                    parseLists(parameter)
-            );
-        }
-
-        return expression;
-    }
 
 
     private static List<ParseItem> parseAllOperators (List<ParseItem> list) throws ParseException {

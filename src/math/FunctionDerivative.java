@@ -32,11 +32,17 @@ public class FunctionDerivative {
 
 
     private static Expression addition (Addition function, String variableName) {
-        return new Addition(compute(function.getAddend0(), variableName), compute(function.getAddend1(), variableName));
+        return new AdditionList(
+                new AdditionList.Addend(compute(function.getAddend0(), variableName)),
+                new AdditionList.Addend(compute(function.getAddend1(), variableName))
+        );
     }
 
     private static Expression subtraction (Subtraction function, String variableName) {
-        return new Subtraction(compute(function.getMinuend(), variableName), compute(function.getSubtrahend(), variableName));
+        return new AdditionList(
+                new AdditionList.Addend(compute(function.getMinuend(), variableName), false),
+                new AdditionList.Addend(compute(function.getSubtrahend(), variableName), true)
+        );
     }
 
     private static Expression variable (Variable function, String variableName) {
@@ -51,14 +57,14 @@ public class FunctionDerivative {
         Expression exponent = function.getExponent();
 
         if (base instanceof Constant && Constant.C.e.equals(((Constant) base).getConstant())) {
-            return new Multiplication(
+            return new MultiplicationList(
                     compute(exponent, variableName),
                     function
             );
         } else {
             return exponentiation(new Exponentiation(
                     new Constant(Constant.C.e),
-                    new Multiplication(
+                    new MultiplicationList(
                             new Function(Function.F.ln, base),
                             exponent
                     )
@@ -71,9 +77,9 @@ public class FunctionDerivative {
         Expression multiplicand1 = function.getMultiplicand1();
 
         // (a*b)' = (a' * b) + (a * b')
-        return new Addition(
-                new Multiplication(compute(multiplicand0, variableName), multiplicand1),
-                new Multiplication(multiplicand0, compute(multiplicand1, variableName))
+        return new AdditionList(
+                new AdditionList.Addend(new MultiplicationList(compute(multiplicand0, variableName), multiplicand1)),
+                new AdditionList.Addend(new MultiplicationList(multiplicand0, compute(multiplicand1, variableName)))
         );
     }
 
@@ -83,11 +89,11 @@ public class FunctionDerivative {
 
         // (a/b)' = ((a' * b) - (a * b')) / b^2
         return new Division(
-                new Subtraction(
-                        new Multiplication(compute(dividend, variableName), divisor),
-                        new Multiplication(dividend, compute(divisor, variableName))
+                new AdditionList(
+                        new AdditionList.Addend(new MultiplicationList(compute(dividend, variableName), divisor), false),
+                        new AdditionList.Addend(new MultiplicationList(dividend, compute(divisor, variableName)), true)
                 ),
-                new Multiplication(divisor, divisor)
+                new MultiplicationList(divisor, divisor)
         );
     }
 
@@ -107,17 +113,17 @@ public class FunctionDerivative {
         if (Function.F.sin.equals(f)) {
             functionDerivative = new Function(Function.F.cos, parameter);
         } else if (Function.F.cos.equals(f)) {
-            functionDerivative = new Multiplication(
+            functionDerivative = new MultiplicationList(
                     new Scalar(-1),
                     new Function(Function.F.sin, parameter)
             );
         } else if (Function.F.tan.equals(f)) {
-            functionDerivative = new Addition(
-                    new Multiplication(
+            functionDerivative = new AdditionList(
+                    new AdditionList.Addend(new MultiplicationList(
                             new Function(Function.F.tan, parameter),
                             new Function(Function.F.tan, parameter)
-                    ),
-                    new Scalar(1)
+                    )),
+                    new AdditionList.Addend(new Scalar(1))
             );
         } else if (Function.F.ln.equals(f)) {
             functionDerivative = new Division(
@@ -127,7 +133,7 @@ public class FunctionDerivative {
         } else if (Function.F.sqrt.equals(f)) {
             functionDerivative = new Division(
                     new Scalar(1),
-                    new Multiplication(
+                    new MultiplicationList(
                             new Scalar(2),
                             new Function(Function.F.sqrt, parameter)
                     )
@@ -137,7 +143,7 @@ public class FunctionDerivative {
             throw new UnsupportedOperationException("not implemented yet");
         }
 
-        return new Multiplication(
+        return new MultiplicationList(
                 compute(parameter, variableName),
                 functionDerivative
         );
@@ -160,7 +166,7 @@ public class FunctionDerivative {
         Expression[] newMultiplicands = new Expression[multiplicands.length-1];
         System.arraycopy(multiplicands, 1, newMultiplicands, 0, multiplicands.length-1);
 
-        return compute(new Multiplication(
+        return multiplication(new Multiplication(
                 multiplicands[0],
                 new MultiplicationList(newMultiplicands)
         ), variableName);
