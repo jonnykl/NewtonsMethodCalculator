@@ -20,7 +20,8 @@ public class Main {
         //test("(x - 1)^2");
         //test("x^(2*1)/1 + 0 * y");
         //test("2^x");
-        //test("(x-1)(x-2)");
+        test("(x-1)(x-2) * 3x^(2 + x - 2*3pi - (3 + 2 - 8))");
+        /*
         Expression expression0 = new MultiplicationList(
                 new Scalar(1),
                 new Constant(Constant.C.pi),
@@ -50,6 +51,7 @@ public class Main {
         );
 
         System.out.println(expression0.equals(expression1) + ", " + expression0.equals(expression2));
+        */
 
         /*
         try {
