@@ -73,7 +73,16 @@ public abstract class Expression {
             if (!(expression1 instanceof Scalar))
                 return false;
 
-            return ((Scalar) expression0).getValue() == ((Scalar) expression1).getValue();
+            double value0 = ((Scalar) expression0).getValue();
+            double value1 = ((Scalar) expression1).getValue();
+
+            if (Double.isNaN(value0) && Double.isNaN(value1))
+                return true;
+
+            if (!Double.isNaN(value0) && !Double.isNaN(value1))
+                return value0 == value1;
+
+            return false;
         } else if (expression0 instanceof Constant) {
             if (!(expression1 instanceof Constant))
                 return false;
