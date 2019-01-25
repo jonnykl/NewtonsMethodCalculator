@@ -49,6 +49,22 @@ public class ExpressionSimplifier {
                         ((Function) expression).getFunction(),
                         simplify(((Function) expression).getParameter())
                 );
+            } else if (expression instanceof AdditionList) {
+                AdditionList.Addend[] addends = ((AdditionList) expression).getAddends();
+
+                AdditionList additionList = new AdditionList();
+                for (AdditionList.Addend addend : addends)
+                    additionList.addAddend(new AdditionList.Addend(simplify(addend.expression), addend.subtract));
+
+                expression = additionList;
+            } else if (expression instanceof MultiplicationList) {
+                Expression[] multiplicands = ((MultiplicationList) expression).getMultiplicands();
+
+                MultiplicationList multiplicationList = new MultiplicationList();
+                for (Expression multiplicand : multiplicands)
+                    multiplicationList.addMultiplicand(simplify(multiplicand));
+
+                expression = multiplicationList;
             }
 
             if (prevExpression.equals(expression))

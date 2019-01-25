@@ -22,6 +22,10 @@ public class FunctionDerivative {
             return constant((Constant) function, variableName);
         else if (function instanceof Function)
             return function((Function) function, variableName);
+        else if (function instanceof AdditionList)
+            return additionList((AdditionList) function, variableName);
+        else if (function instanceof MultiplicationList)
+            return multiplicationList((MultiplicationList) function, variableName);
 
         throw new UnknownError("unknown expression: " + function.getClass().getName());
     }
@@ -185,5 +189,27 @@ public class FunctionDerivative {
         );
     }
 
+
+    private static Expression additionList (AdditionList function, String variableName) {
+        AdditionList additionList = new AdditionList();
+        for (AdditionList.Addend addend : function.getAddends())
+            additionList.addAddend(new AdditionList.Addend(compute(addend.expression, variableName), addend.subtract));
+
+        return additionList;
+    }
+
+    private static Expression multiplicationList (MultiplicationList function, String variableName) {
+        Expression[] multiplicands = function.getMultiplicands();
+        if (multiplicands.length == 1)
+            return compute(multiplicands[0], variableName);
+
+        Expression[] newMultiplicands = new Expression[multiplicands.length-1];
+        System.arraycopy(multiplicands, 1, newMultiplicands, 0, multiplicands.length-1);
+
+        return compute(new Multiplication(
+                multiplicands[0],
+                new MultiplicationList(newMultiplicands)
+        ), variableName);
+    }
 
 }
