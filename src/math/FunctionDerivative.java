@@ -138,9 +138,14 @@ public class FunctionDerivative {
                             new Function(Function.F.sqrt, parameter)
                     )
             );
+        } else if (Function.F.abs.equals(f)) {
+            functionDerivative = new Division(
+                    parameter,
+                    new Function(Function.F.abs, parameter)
+            );
         } else {
-            // abs, round, ceil, floor
-            throw new UnsupportedOperationException("not implemented yet");
+            // round, ceil, floor
+            throw new UnsupportedOperationException("not yet implemented");
         }
 
         return new MultiplicationList(
