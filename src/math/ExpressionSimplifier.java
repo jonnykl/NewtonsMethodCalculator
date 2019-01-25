@@ -1,6 +1,10 @@
 package math;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class ExpressionSimplifier {
 
     private static final int MAX_ITERATIONS = 10000;
@@ -17,6 +21,7 @@ public class ExpressionSimplifier {
             expression = simplifyExponentiation(expression);
             expression = evaluateBasicOperations(expression);
             expression = reduceFraction(expression);
+            expression = mergeExponentiation(expression);
 
 
 
@@ -90,16 +95,224 @@ public class ExpressionSimplifier {
     }
 
 
+    private static Expression mergeExponentiation (Expression expression) {
+        if (expression instanceof MultiplicationList) {
+            List<Expression> dividendList = new ArrayList<>();
+            List<Expression> divisorList = new ArrayList<>();
 
-    private static Expression reduceFraction (Expression expression) {
-        if (expression instanceof Division) {
-            Expression dividend = ((Division) expression).getDividend();
-            Expression divisor = ((Division) expression).getDivisor();
+            splitFraction(dividendList, divisorList, expression);
 
-            // TODO: 2x/x = 2
+
+            mergeMultiplicationExponentiation(dividendList);
+            mergeMultiplicationExponentiation(divisorList);
+
+            mergeDivisionExponentiation(dividendList, divisorList);
+
+
+            if (divisorList.size() == 0) {
+                if (dividendList.size() == 0)
+                    return new Scalar(1);
+
+                return new MultiplicationList(dividendList.toArray(new Expression[0]));
+            }
+
+            return new Division(
+                    dividendList.size() > 0 ? new MultiplicationList(dividendList.toArray(new Expression[0])) : new Scalar(1),
+                    new MultiplicationList(divisorList.toArray(new Expression[0]))
+            );
         }
 
         return expression;
+    }
+
+
+    private static Expression reduceFraction (Expression expression) {
+        if (expression instanceof Division) {
+            List<Expression> dividendList = new ArrayList<>();
+            List<Expression> divisorList = new ArrayList<>();
+
+            splitFraction(dividendList, divisorList, expression);
+
+
+            for (int i=0; i<dividendList.size(); i++) {
+                Expression dividend = dividendList.get(i);
+                for (int j=0; j<divisorList.size(); j++) {
+                    Expression divisor = divisorList.get(j);
+                    if (dividend.equals(divisor)) {
+                        dividendList.remove(i);
+                        divisorList.remove(i);
+
+                        i--;
+                        break;
+                    }
+                }
+            }
+
+
+            double allScalars = 1;
+            for (int i=0; i<dividendList.size(); i++) {
+                Expression dividend = dividendList.get(i);
+                if (!(dividend instanceof  Scalar))
+                    continue;
+
+                double value = ((Scalar) dividend).getValue();
+                allScalars *= value;
+
+                dividendList.remove(i);
+                i--;
+            }
+
+            for (int i=0; i<divisorList.size(); i++) {
+                Expression divisor = divisorList.get(i);
+                if (!(divisor instanceof  Scalar))
+                    continue;
+
+                double value = ((Scalar) divisor).getValue();
+                if (value == 0)
+                    continue;
+
+                allScalars /= value;
+
+                divisorList.remove(i);
+                i--;
+            }
+
+            if (allScalars != 1)
+                dividendList.add(new Scalar(allScalars));
+
+
+            mergeMultiplicationExponentiation(dividendList);
+            mergeMultiplicationExponentiation(divisorList);
+
+            mergeDivisionExponentiation(dividendList, divisorList);
+
+
+            if (divisorList.size() == 0) {
+                if (dividendList.size() == 0)
+                    return new Scalar(1);
+
+                return new MultiplicationList(dividendList.toArray(new Expression[0]));
+            }
+
+            return new Division(
+                    dividendList.size() > 0 ? new MultiplicationList(dividendList.toArray(new Expression[0])) : new Scalar(1),
+                    new MultiplicationList(divisorList.toArray(new Expression[0]))
+            );
+        }
+
+        return expression;
+    }
+
+    private static void mergeMultiplicationExponentiation (List<Expression> list) {
+        for (int i=0; i<list.size(); i++) {
+            Expression expression0 = list.get(i);
+            Expression base0, exponent0;
+
+            if (expression0 instanceof Exponentiation) {
+                base0 = ((Exponentiation) expression0).getBase();
+                exponent0 = ((Exponentiation) expression0).getExponent();
+            } else {
+                base0 = expression0;
+                exponent0 = new Scalar(1);
+            }
+
+            for (int j=i+1; j<list.size(); j++) {
+                Expression expression1 = list.get(j);
+                Expression base1, exponent1;
+
+                if (expression1 instanceof Exponentiation) {
+                    base1 = ((Exponentiation) expression1).getBase();
+                    exponent1 = ((Exponentiation) expression1).getExponent();
+                } else {
+                    base1 = expression1;
+                    exponent1 = new Scalar(1);
+                }
+
+                if (base0.equals(base1)) {
+                    exponent0 = evaluateBasicOperations(removeNeutralElement(new AdditionList(
+                            new AdditionList.Addend(exponent0),
+                            new AdditionList.Addend(exponent1)
+                    )));
+
+                    list.remove(j);
+                    j--;
+                }
+            }
+
+            if (exponent0 instanceof Scalar) {
+                double value = ((Scalar) exponent0).getValue();
+                if (value == 0)
+                    list.set(i, new Scalar(1));
+                else if (value == 1)
+                    list.set(i, base0);
+                else
+                    list.set(i, new Exponentiation(base0, exponent0));
+            } else {
+                list.set(i, new Exponentiation(base0, exponent0));
+            }
+        }
+    }
+
+    private static void mergeDivisionExponentiation (List<Expression> dividend, List<Expression> divisor) {
+        for (int i=0; i<dividend.size(); i++) {
+            Expression expression0 = dividend.get(i);
+            Expression base0, exponent0;
+
+            if (expression0 instanceof Exponentiation) {
+                base0 = ((Exponentiation) expression0).getBase();
+                exponent0 = ((Exponentiation) expression0).getExponent();
+            } else {
+                base0 = expression0;
+                exponent0 = new Scalar(1);
+            }
+
+            for (int j=0; j<divisor.size(); j++) {
+                Expression expression1 = divisor.get(j);
+                Expression base1, exponent1;
+
+                if (expression1 instanceof Exponentiation) {
+                    base1 = ((Exponentiation) expression1).getBase();
+                    exponent1 = ((Exponentiation) expression1).getExponent();
+                } else {
+                    base1 = expression1;
+                    exponent1 = new Scalar(1);
+                }
+
+                if (base0.equals(base1)) {
+                    exponent0 = evaluateBasicOperations(removeNeutralElement(new AdditionList(
+                            new AdditionList.Addend(exponent0, false),
+                            new AdditionList.Addend(exponent1, true)
+                    )));
+
+                    divisor.remove(j);
+                    j--;
+                }
+            }
+
+            if (exponent0 instanceof Scalar) {
+                double value = ((Scalar) exponent0).getValue();
+                if (value == 0)
+                    dividend.set(i, new Scalar(1));
+                else if (value == 1)
+                    dividend.set(i, base0);
+                else
+                    dividend.set(i, new Exponentiation(base0, exponent0));
+            } else {
+                dividend.set(i, new Exponentiation(base0, exponent0));
+            }
+        }
+    }
+
+    private static void splitFraction (List<Expression> list0, List<Expression> list1, Expression expression) {
+        if (expression instanceof MultiplicationList) {
+            for (Expression multiplicand : ((MultiplicationList) expression).getMultiplicands())
+                splitFraction(list0, list1, multiplicand);
+        } else if (expression instanceof Division) {
+            splitFraction(list0, list1, ((Division) expression).getDividend());
+            splitFraction(list1, list0, ((Division) expression).getDivisor());
+        } else {
+            list0.add(expression);
+        }
     }
 
 
@@ -124,7 +337,7 @@ public class ExpressionSimplifier {
                 return new Scalar(((Scalar) multiplicand0).getValue() * ((Scalar) multiplicand1).getValue());
         } else if (expression instanceof Division) {
             Expression dividend = ((Division) expression).getDividend();
-            Expression divisor = ((Division) expression).getDividend();
+            Expression divisor = ((Division) expression).getDivisor();
 
             if (dividend instanceof Scalar && divisor instanceof Scalar) {
                 double dividendValue = ((Scalar) dividend).getValue();
