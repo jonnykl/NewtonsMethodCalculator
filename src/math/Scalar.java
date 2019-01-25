@@ -31,7 +31,8 @@ public class Scalar extends Expression {
 
     @Override
     public String toString () {
-        return Double.toString(value);
+        String str = Double.toString(value);
+        return value < 0 ? "(" + str + ")" : str;
     }
 
 }
