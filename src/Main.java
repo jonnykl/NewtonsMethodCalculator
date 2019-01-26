@@ -15,16 +15,18 @@ public class Main {
     public static void main (String[] args) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        /*
+        //*
         String functionText = requestInput(reader, "enter function: ");
         String startValueText = requestInput(reader, "enter start value: ");
         String minimumPrecisionText = requestInput(reader, "enter minimum precision: ");
         String maximumIterationCountText = requestInput(reader, "enter maximum iteration count: ");
-        */
+        // */
+        /*
         String functionText = "(x-1)^2 - 0.2";
         String startValueText = "15";
         String minimumPrecisionText = "1e-10";
         String maximumIterationCountText = "1000";
+        // */
 
         try {
             Expression function = Expression.parse(functionText);
