@@ -131,6 +131,10 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
         double diff = yMax - yMin;
         int numYPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
+        if (numYPoints > 5*NUM_X_POINTS)
+            numYPoints = 5*NUM_X_POINTS;
+
+
         double[] xValues = new double[numYPoints];
         double[] yValues = new double[numYPoints];
 
