@@ -13,7 +13,7 @@ import java.util.List;
 public class NewtonsMethodPlotFrame extends JFrame {
 
     private static final int NUM_X_POINTS = 1000;
-    private static final int ANIMATION_DURATION = 3 * 1000;
+    private static final int ANIMATION_DURATION = 5 * 1000;
 
     private final Expression functionDerivative;
     private final double[] xValues;
