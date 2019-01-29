@@ -7,6 +7,7 @@ import org.jfree.data.xy.DefaultXYDataset;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 
 public class NewtonsMethodPlotFrame extends JFrame {
@@ -14,7 +15,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
     private static final int NUM_X_POINTS = 1000;
     private static final int ANIMATION_DURATION = 3 * 1000;
 
-    private final Expression function, functionDerivative;
+    private final Expression functionDerivative;
     private final double[] xValues;
     private final double[] yValues;
 
@@ -24,7 +25,6 @@ public class NewtonsMethodPlotFrame extends JFrame {
     private double yMin = Double.POSITIVE_INFINITY;
     private double yMax = Double.NEGATIVE_INFINITY;
 
-    private Thread updateThread = new Thread(new Updater());
     private DefaultXYDataset dataset = new DefaultXYDataset();
 
 
@@ -32,7 +32,6 @@ public class NewtonsMethodPlotFrame extends JFrame {
         super("Newton's method");
 
 
-        this.function = function;
         this.functionDerivative = functionDerivative;
         this.xValues = xValues;
         this.yValues = yValues;
@@ -82,7 +81,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
         chartPanel.setPreferredSize(new Dimension(800, 640));
 
         setContentPane(chartPanel);
-        updateThread.start();
+        (new UpdaterWorker()).execute();
     }
 
 
@@ -190,12 +189,12 @@ public class NewtonsMethodPlotFrame extends JFrame {
     }
 
 
-    private class Updater implements Runnable {
+    private class UpdaterWorker extends SwingWorker<Void, UpdaterWorker.PlotObject> {
 
         @Override
-        public void run () {
+        protected Void doInBackground () {
             if (xValues.length == 0)
-                return;
+                return null;
 
             double stepDuration = 1e6 * ANIMATION_DURATION / xValues.length;
             int step = 0;
@@ -245,11 +244,11 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     xMin = m > 0 ? x_0 : Double.NaN;
                     xMax = m < 0 ? x_0 : Double.NaN;
 
-                    plotFunction("tangent", tangent, "x", xMin, xMax);
+                    publish(new PlotFunctionObject("tangent", tangent, "x", xMin, xMax));
 
 
                     if (Double.isFinite(x_0))
-                        plotVerticalLine("vertical line", x_0, yMin, yMax);
+                        publish(new PlotVerticalLineObject("vertical line", x_0, yMin, yMax));
                 } catch (EvaluationException e) {
                     e.printStackTrace();
                 }
@@ -267,6 +266,70 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     e.printStackTrace();
                 }
             }
+        }
+
+
+        @Override
+        protected void process (List<PlotObject> chunks) {
+            if (chunks == null)
+                return;
+
+            for (PlotObject obj : chunks) {
+                try {
+                    if (obj instanceof PlotFunctionObject)
+                        plotFunction(obj.seriesKey, ((PlotFunctionObject) obj).function, ((PlotFunctionObject) obj).variableName, ((PlotFunctionObject) obj).xMin, ((PlotFunctionObject) obj).xMax);
+                    else if (obj instanceof  PlotVerticalLineObject)
+                        plotVerticalLine(obj.seriesKey, ((PlotVerticalLineObject) obj).x, ((PlotVerticalLineObject) obj).yMin, ((PlotVerticalLineObject) obj).yMax);
+                } catch (EvaluationException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+        private abstract class PlotObject {
+
+            Comparable seriesKey;
+
+
+            PlotObject (Comparable seriesKey) {
+                this.seriesKey = seriesKey;
+            }
+
+        }
+
+        private class PlotFunctionObject extends PlotObject {
+
+            Expression function;
+            String variableName;
+            double xMin, xMax;
+
+
+            PlotFunctionObject (Comparable seriesKey, Expression function, String variableName, double xMin, double xMax) {
+                super(seriesKey);
+
+                this.function = function;
+                this.variableName = variableName;
+                this.xMin = xMin;
+                this.xMax = xMax;
+            }
+
+        }
+
+        private class PlotVerticalLineObject extends PlotObject {
+
+            double x;
+            double yMin, yMax;
+
+
+            PlotVerticalLineObject (Comparable seriesKey, double x, double yMin, double yMax) {
+                super(seriesKey);
+
+                this.x = x;
+                this.yMin = yMin;
+                this.yMax = yMax;
+            }
+
         }
 
     }
