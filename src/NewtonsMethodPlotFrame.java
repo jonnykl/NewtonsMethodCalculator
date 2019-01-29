@@ -12,7 +12,7 @@ import java.awt.*;
 public class NewtonsMethodPlotFrame extends JFrame {
 
     private static final int NUM_X_POINTS = 1000;
-    private static final int ANIMATION_DURATION = 10 * 1000;
+    private static final int ANIMATION_DURATION = 3 * 1000;
 
     private final Expression function, functionDerivative;
     private final double[] xValues;
@@ -21,6 +21,8 @@ public class NewtonsMethodPlotFrame extends JFrame {
     private double xMin = Double.POSITIVE_INFINITY;
     private double xMax = Double.NEGATIVE_INFINITY;
     private double xDiff = Double.NaN;
+    private double yMin = Double.POSITIVE_INFINITY;
+    private double yMax = Double.NEGATIVE_INFINITY;
 
     private Thread updateThread = new Thread(new Updater());
     private DefaultXYDataset dataset = new DefaultXYDataset();
@@ -49,6 +51,19 @@ public class NewtonsMethodPlotFrame extends JFrame {
             xMax += diff;
 
             xDiff = xMax - xMin;
+        }
+
+        try {
+            double[] functionYMinMax = calcYMinMax(function, "x");
+            double[] functionDerivativeYMinMax = calcYMinMax(functionDerivative, "x");
+
+            if (functionYMinMax != null && functionDerivativeYMinMax != null) {
+                yMin = Math.min(functionYMinMax[0], functionDerivativeYMinMax[0]);
+                yMax = Math.max(functionYMinMax[1], functionDerivativeYMinMax[1]);
+            }
+        } catch (EvaluationException e) {
+            e.printStackTrace();
+            return;
         }
 
 
@@ -132,13 +147,13 @@ public class NewtonsMethodPlotFrame extends JFrame {
     }
 
 
-    private double calcYMax (Expression function, String variableName) throws EvaluationException {
-        return calcYMax(function, variableName, Double.NaN, Double.NaN);
+    private double[] calcYMinMax (Expression function, String variableName) throws EvaluationException {
+        return calcYMinMax(function, variableName, Double.NaN, Double.NaN);
     }
 
-    private double calcYMax (Expression function, String variableName, double xMin, double xMax) throws EvaluationException {
+    private double[] calcYMinMax (Expression function, String variableName, double xMin, double xMax) throws EvaluationException {
         if (Double.isNaN(xDiff))
-            return Double.NaN;
+            return null;
 
         if (!Double.isFinite(xMin) || xMin < this.xMin)
             xMin = this.xMin;
@@ -147,7 +162,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
             xMax = this.xMax;
 
         if (xMax < xMin)
-            return Double.NaN;
+            return null;
 
 
         VariableDefinition xVariable = new VariableDefinition(variableName, 0);
@@ -155,6 +170,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
         double diff = xMax - xMin;
         int numXPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
 
+        double yMin = Double.POSITIVE_INFINITY;
         double yMax = Double.NEGATIVE_INFINITY;
 
         double step = diff / numXPoints;
@@ -163,11 +179,14 @@ public class NewtonsMethodPlotFrame extends JFrame {
             xVariable.setValue(new Scalar(x));
 
             double y = function.evaluate(xVariable);
+            if (y < yMin)
+                yMin = y;
+
             if (y > yMax)
                 yMax = y;
         }
 
-        return yMax;
+        return new double[]{yMin, yMax};
     }
 
 
@@ -182,17 +201,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
             int step = 0;
 
             VariableDefinition xVariable = new VariableDefinition("x", 0);
-            double x, y, m, xMin, xMax, yMax;
-
-            try {
-                double functionYMax = calcYMax(function, "x");
-                double functionDerivativeYMax = calcYMax(functionDerivative, "x");
-
-                yMax = Math.max(functionYMax, functionDerivativeYMax);
-            } catch (EvaluationException e) {
-                e.printStackTrace();
-                return;
-            }
+            double x, y, m, xMin, xMax;
 
 
             long t;
@@ -233,14 +242,14 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     );
 
                     double x_0 = x - y/m;
-                    xMin = x_0;
-                    xMax = Double.NaN;
+                    xMin = m > 0 ? x_0 : Double.NaN;
+                    xMax = m < 0 ? x_0 : Double.NaN;
 
                     plotFunction("tangent", tangent, "x", xMin, xMax);
 
 
                     if (Double.isFinite(x_0))
-                        plotVerticalLine("vertical line", x_0, 0, yMax);
+                        plotVerticalLine("vertical line", x_0, yMin, yMax);
                 } catch (EvaluationException e) {
                     e.printStackTrace();
                 }
