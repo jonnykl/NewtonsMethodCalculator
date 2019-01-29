@@ -16,6 +16,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
     private final Expression function, functionDerivative;
     private final double[] xValues;
+    private final double[] yValues;
 
     private double xMin = Double.POSITIVE_INFINITY;
     private double xMax = Double.NEGATIVE_INFINITY;
@@ -25,13 +26,14 @@ public class NewtonsMethodPlotFrame extends JFrame {
     private DefaultXYDataset dataset = new DefaultXYDataset();
 
 
-    public NewtonsMethodPlotFrame (Expression function, Expression functionDerivative, double[] xValues) {
+    public NewtonsMethodPlotFrame (Expression function, Expression functionDerivative, double[] xValues, double[] yValues) {
         super("Newton's method");
 
 
         this.function = function;
         this.functionDerivative = functionDerivative;
         this.xValues = xValues;
+        this.yValues = yValues;
 
         for (double x : xValues) {
             if (x < xMin)
@@ -43,8 +45,8 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
         double diff = xMax-xMin;
         if (diff > 0) {
-            xMin -= diff * 5;
-            xMax += diff * 5;
+            xMin -= diff;
+            xMax += diff;
 
             xDiff = xMax - xMin;
         }
@@ -70,17 +72,32 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
 
     private void plotFunction (Comparable seriesKey, Expression function, String variableName) throws EvaluationException {
+        plotFunction(seriesKey, function, variableName, Double.NaN, Double.NaN);
+    }
+
+    private void plotFunction (Comparable seriesKey, Expression function, String variableName, double xMin, double xMax) throws EvaluationException {
         if (Double.isNaN(xDiff))
+            return;
+
+        if (!Double.isFinite(xMin) || xMin < this.xMin)
+            xMin = this.xMin;
+
+        if (!Double.isFinite(xMax) || xMax > this.xMax)
+            xMax = this.xMax;
+
+        if (xMax < xMin)
             return;
 
 
         VariableDefinition xVariable = new VariableDefinition(variableName, 0);
 
-        double[] xValues = new double[NUM_X_POINTS];
-        double[] yValues = new double[NUM_X_POINTS];
+        double diff = xMax - xMin;
+        int numXPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
+        double[] xValues = new double[numXPoints];
+        double[] yValues = new double[numXPoints];
 
-        double step = xDiff / NUM_X_POINTS;
-        for (int i = 0; i< NUM_X_POINTS; i++) {
+        double step = diff / numXPoints;
+        for (int i=0; i<numXPoints; i++) {
             double x = xMin + i*step;
             xVariable.setValue(new Scalar(x));
 
@@ -91,6 +108,66 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
         dataset.removeSeries(seriesKey);
         dataset.addSeries(seriesKey, new double[][]{xValues, yValues});
+    }
+
+    private void plotVerticalLine (Comparable seriesKey, double x, double yMin, double yMax) {
+        if (Double.isNaN(xDiff) || !Double.isFinite(yMin) || !Double.isFinite(yMax) || yMin > yMax)
+            return;
+
+
+        double diff = yMax - yMin;
+        int numYPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
+        double[] xValues = new double[numYPoints];
+        double[] yValues = new double[numYPoints];
+
+        double step = diff / numYPoints;
+        for (int i=0; i<numYPoints; i++) {
+            xValues[i] = x;
+            yValues[i] = yMin + i*step;
+        }
+
+
+        dataset.removeSeries(seriesKey);
+        dataset.addSeries(seriesKey, new double[][]{xValues, yValues});
+    }
+
+
+    private double calcYMax (Expression function, String variableName) throws EvaluationException {
+        return calcYMax(function, variableName, Double.NaN, Double.NaN);
+    }
+
+    private double calcYMax (Expression function, String variableName, double xMin, double xMax) throws EvaluationException {
+        if (Double.isNaN(xDiff))
+            return Double.NaN;
+
+        if (!Double.isFinite(xMin) || xMin < this.xMin)
+            xMin = this.xMin;
+
+        if (!Double.isFinite(xMax) || xMax > this.xMax)
+            xMax = this.xMax;
+
+        if (xMax < xMin)
+            return Double.NaN;
+
+
+        VariableDefinition xVariable = new VariableDefinition(variableName, 0);
+
+        double diff = xMax - xMin;
+        int numXPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
+
+        double yMax = Double.NEGATIVE_INFINITY;
+
+        double step = diff / numXPoints;
+        for (int i=0; i<numXPoints; i++) {
+            double x = xMin + i*step;
+            xVariable.setValue(new Scalar(x));
+
+            double y = function.evaluate(xVariable);
+            if (y > yMax)
+                yMax = y;
+        }
+
+        return yMax;
     }
 
 
@@ -105,7 +182,18 @@ public class NewtonsMethodPlotFrame extends JFrame {
             int step = 0;
 
             VariableDefinition xVariable = new VariableDefinition("x", 0);
-            double x, y, m;
+            double x, y, m, xMin, xMax, yMax;
+
+            try {
+                double functionYMax = calcYMax(function, "x");
+                double functionDerivativeYMax = calcYMax(functionDerivative, "x");
+
+                yMax = Math.max(functionYMax, functionDerivativeYMax);
+            } catch (EvaluationException e) {
+                e.printStackTrace();
+                return;
+            }
+
 
             long t;
             while (true) {
@@ -116,7 +204,10 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
 
                 x = xValues[step];
+                y = yValues[step];
+
                 xVariable.setValue(new Scalar(x));
+
 
                 try {
                     /*
@@ -124,9 +215,14 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     y = mx + k
                     b = m*a + k
                     k = b-m*a
+                    y = mx + b - ma
+
+                    y = 0
+                    0 = mx + b - ma
+                    ma - b = mx
+                    x = a - b/m
                     */
 
-                    y = function.evaluate(xVariable);
                     m = functionDerivative.evaluate(xVariable);
                     Expression tangent = new AdditionList(
                             new AdditionList.Addend(new MultiplicationList(
@@ -136,7 +232,15 @@ public class NewtonsMethodPlotFrame extends JFrame {
                             new AdditionList.Addend(new Scalar(y - m*x))
                     );
 
-                    plotFunction("tangent", tangent, "x");
+                    double x_0 = x - y/m;
+                    xMin = x_0;
+                    xMax = Double.NaN;
+
+                    plotFunction("tangent", tangent, "x", xMin, xMax);
+
+
+                    if (Double.isFinite(x_0))
+                        plotVerticalLine("vertical line", x_0, 0, yMax);
                 } catch (EvaluationException e) {
                     e.printStackTrace();
                 }

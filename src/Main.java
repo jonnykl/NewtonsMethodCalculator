@@ -43,6 +43,7 @@ public class Main {
 
 
             List<Double> xValues = new ArrayList<>();
+            List<Double> yValues = new ArrayList<>();
 
             while (true) {
                 boolean end = newtonsMethod.step();
@@ -51,6 +52,7 @@ public class Main {
                 double y = newtonsMethod.getCurrentValueY();
 
                 xValues.add(x);
+                yValues.add(y);
 
                 System.out.println("x: " + x);
                 System.out.println("y: " + y);
@@ -69,7 +71,12 @@ public class Main {
                 for (int i=0; i<xValues.size(); i++)
                     xValuesArr[i] = xValues.get(i);
 
-                NewtonsMethodPlotFrame frame = new NewtonsMethodPlotFrame(function, functionDerivative, xValuesArr);
+                double[] yValuesArr = new double[xValues.size()];
+                for (int i=0; i<xValues.size(); i++)
+                    yValuesArr[i] = yValues.get(i);
+
+
+                NewtonsMethodPlotFrame frame = new NewtonsMethodPlotFrame(function, functionDerivative, xValuesArr, yValuesArr);
                 frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
                 frame.pack();
                 frame.setVisible(true);
