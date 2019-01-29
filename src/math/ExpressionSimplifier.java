@@ -452,6 +452,9 @@ public class ExpressionSimplifier {
                             continue;
                         }
 
+                        if (idx == newMultiplicands.length)
+                            break;
+
                         newMultiplicands[idx] = multiplicand;
                         idx++;
                     }
