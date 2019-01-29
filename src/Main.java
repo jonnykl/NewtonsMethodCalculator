@@ -1,6 +1,7 @@
 import math.Expression;
+import math.VariableDefinition;
+import math.exception.EvaluationException;
 import math.exception.ParseException;
-import math.exception.UnknownVariableException;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -45,6 +46,9 @@ public class Main {
             List<Double> xValues = new ArrayList<>();
             List<Double> yValues = new ArrayList<>();
 
+            xValues.add(startValue);
+            yValues.add(function.evaluate(new VariableDefinition("x", startValue)));
+
             while (true) {
                 boolean end = newtonsMethod.step();
 
@@ -54,12 +58,17 @@ public class Main {
                 xValues.add(x);
                 yValues.add(y);
 
+                if (end)
+                    break;
+            }
+
+            for (int i=0; i<xValues.size(); i++) {
+                double x = xValues.get(i);
+                double y = yValues.get(i);
+
                 System.out.println("x: " + x);
                 System.out.println("y: " + y);
                 System.out.println();
-
-                if (end)
-                    break;
             }
 
             boolean success = newtonsMethod.success();
@@ -81,7 +90,7 @@ public class Main {
                 frame.pack();
                 frame.setVisible(true);
             }
-        } catch (ParseException | UnknownVariableException | NumberFormatException e) {
+        } catch (ParseException | NumberFormatException | EvaluationException e) {
             e.printStackTrace();
         }
     }
