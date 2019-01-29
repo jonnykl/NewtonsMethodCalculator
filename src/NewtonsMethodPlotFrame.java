@@ -233,6 +233,12 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     0 = mx + b - ma
                     ma - b = mx
                     x = a - b/m
+
+                    y = c
+                    c = mx + b - ma
+                    c + ma - b = mx
+                    x = c/m + a - b/m
+                    x = a + (c-b)/m
                     */
 
                     m = functionDerivative.evaluate(xVariable);
@@ -245,8 +251,19 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     );
 
                     double x_0 = x - y/m;
-                    xMin = m > 0 ? x_0 : Double.NaN;
-                    xMax = m < 0 ? x_0 : Double.NaN;
+                    if (m != 0) {
+                        xMin = x + (yMin - y) / m;
+                        xMax = x + (yMax - y) / m;
+
+                        if (m < 0) {
+                            double tmp = xMin;
+                            xMin = xMax;
+                            xMax = tmp;
+                        }
+                    } else {
+                        xMin = Double.NaN;
+                        xMax = Double.NaN;
+                    }
 
                     publish(new PlotFunctionObject("tangent", tangent, "x", xMin, xMax));
 
