@@ -16,7 +16,7 @@ public class NewtonsMethod {
     private int iterationCount;
     private double currentValueX, currentValueY;
 
-    private boolean error;
+    private Error error = Error.SUCCESS;
 
 
     public NewtonsMethod (Expression function, String variableName, double startValue, double minimumPrecision, int maximumIterationCount) {
@@ -105,10 +105,10 @@ public class NewtonsMethod {
         currentValueX = startValue;
         currentValueY = 0;
 
-        error = false;
+        error = Error.SUCCESS;
     }
 
-    public boolean step () throws UnknownVariableException {
+    public boolean step () {
         if (maximumIterationCount > 0 && iterationCount >= maximumIterationCount)
             return true;
 
@@ -121,37 +121,81 @@ public class NewtonsMethod {
 
         double a, b;
 
+
         try {
             a = function.evaluate(variables);
             //System.out.println("a: " + a);
-            if (!Double.isFinite(a)) {
-                error = true;
-                return true;
-            }
-
-            if (a == 0)
-                return true;
-
-            b = functionDerivative.evaluate(variables);
-            //System.out.println("b: " + b + " -> " + functionDerivative);
-            if (b == 0 || !Double.isFinite(b)) {
-                error = true;
-                return true;
-            }
-
-
-            currentValueX = currentValueX - a/b;
-
-            variables[0].setValue(new Scalar(currentValueX));
-            currentValueY = function.evaluate(variables);
         } catch (EvaluationException e) {
             if (e instanceof UnknownVariableException)
-                throw (UnknownVariableException) e;
+                error = Error.UNKNOWN_VARIABLE;
+            else
+                error = Error.EVALUATE_FUNCTION;
 
             return true;
         }
 
-        return Math.abs(currentValueY) <= minimumPrecision || (maximumIterationCount > 0 && iterationCount >= maximumIterationCount);
+        if (!Double.isFinite(a)) {
+            error = Error.EVALUATE_FUNCTION;
+            return true;
+        }
+
+        if (a == 0)
+            return true;
+
+
+        try {
+            b = functionDerivative.evaluate(variables);
+            //System.out.println("b: " + b + " -> " + functionDerivative);
+        } catch (EvaluationException e) {
+            if (e instanceof UnknownVariableException)
+                error = Error.UNKNOWN_VARIABLE;
+            else
+                error = Error.EVALUATE_FUNCTION_DERIVATIVE;
+
+            return true;
+        }
+
+        if (!Double.isFinite(b)) {
+            error = Error.EVALUATE_FUNCTION_DERIVATIVE;
+            return true;
+        }
+
+        if (b == 0) {
+            error = Error.FUNCTION_DERIVATIVE_ZERO;
+            return true;
+        }
+
+
+        currentValueX = currentValueX - a/b;
+        variables[0].setValue(new Scalar(currentValueX));
+
+        try {
+            currentValueY = function.evaluate(variables);
+        } catch (EvaluationException e) {
+            if (e instanceof UnknownVariableException)
+                error = Error.UNKNOWN_VARIABLE;
+            else
+                error = Error.EVALUATE_FUNCTION;
+
+            return true;
+        }
+
+        if (!Double.isFinite(currentValueY)) {
+            error = Error.EVALUATE_FUNCTION;
+            return true;
+        }
+
+
+        if (Math.abs(currentValueY) <= minimumPrecision)
+            return true;
+
+        if (maximumIterationCount > 0 && iterationCount >= maximumIterationCount) {
+            error = Error.MAX_ITERATIONS_REACHED;
+            return true;
+        }
+
+
+        return false;
     }
 
     public void run () throws UnknownVariableException {
@@ -163,8 +207,13 @@ public class NewtonsMethod {
     }
 
 
-    public boolean success () {
-        return iterationCount > 0 && !error && Math.abs(currentValueY) <= minimumPrecision;
+    public Error getError () {
+        return error;
+    }
+
+
+    public enum Error {
+        SUCCESS, FUNCTION_DERIVATIVE_ZERO, EVALUATE_FUNCTION, EVALUATE_FUNCTION_DERIVATIVE, UNKNOWN_VARIABLE, MAX_ITERATIONS_REACHED
     }
 
 }
