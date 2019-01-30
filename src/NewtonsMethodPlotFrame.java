@@ -54,11 +54,9 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
         try {
             double[] functionYMinMax = calcYMinMax(function, "x");
-            double[] functionDerivativeYMinMax = calcYMinMax(functionDerivative, "x");
-
-            if (functionYMinMax != null && functionDerivativeYMinMax != null) {
-                yMin = Math.min(functionYMinMax[0], functionDerivativeYMinMax[0]);
-                yMax = Math.max(functionYMinMax[1], functionDerivativeYMinMax[1]);
+            if (functionYMinMax != null) {
+                yMin = functionYMinMax[0];
+                yMax = functionYMinMax[1];
             }
         } catch (EvaluationException e) {
             e.printStackTrace();
@@ -114,9 +112,10 @@ public class NewtonsMethodPlotFrame extends JFrame {
         for (int i=0; i<numXPoints; i++) {
             double x = xMin + i*step;
             xVariable.setValue(new Scalar(x));
+            double y = function.evaluate(xVariable);
 
             xValues[i] = x;
-            yValues[i] = function.evaluate(xVariable);
+            yValues[i] = Math.min(Math.max(y, yMin), yMax);
         }
 
 
