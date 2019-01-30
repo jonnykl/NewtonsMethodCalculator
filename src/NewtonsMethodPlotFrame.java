@@ -6,7 +6,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.DefaultXYDataset;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.List;
 
 
@@ -75,10 +74,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
         JFreeChart chart = ChartFactory.createXYLineChart(null, "x", "y", dataset);
 
-        ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new Dimension(800, 640));
-
-        setContentPane(chartPanel);
+        setContentPane(new ChartPanel(chart));
         (new UpdaterWorker()).execute();
     }
 
