@@ -21,6 +21,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
     private double xMin = Double.POSITIVE_INFINITY;
     private double xMax = Double.NEGATIVE_INFINITY;
     private double xDiff = Double.NaN;
+
     private double yMin = Double.POSITIVE_INFINITY;
     private double yMax = Double.NEGATIVE_INFINITY;
 
@@ -51,15 +52,19 @@ public class NewtonsMethodPlotFrame extends JFrame {
             xDiff = xMax - xMin;
         }
 
-        try {
-            double[] functionYMinMax = calcYMinMax(function, "x");
-            if (functionYMinMax != null) {
-                yMin = functionYMinMax[0];
-                yMax = functionYMinMax[1];
-            }
-        } catch (EvaluationException e) {
-            e.printStackTrace();
-            return;
+
+        for (double y : yValues) {
+            if (y < yMin)
+                yMin = y;
+
+            if (y > yMax)
+                yMax = y;
+        }
+
+        diff = yMax-yMin;
+        if (diff > 0) {
+            yMin -= diff;
+            yMax += diff;
         }
 
 
@@ -120,71 +125,15 @@ public class NewtonsMethodPlotFrame extends JFrame {
     }
 
     private void plotVerticalLine (Comparable seriesKey, double x, double yMin, double yMax) {
-        if (Double.isNaN(xDiff) || !Double.isFinite(yMin) || !Double.isFinite(yMax) || yMin > yMax)
+        if (!Double.isFinite(yMin) || !Double.isFinite(yMax) || yMin > yMax)
             return;
 
 
-        double diff = yMax - yMin;
-        int numYPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
-        if (numYPoints > 5*NUM_X_POINTS)
-            numYPoints = 5*NUM_X_POINTS;
-
-
-        double[] xValues = new double[numYPoints];
-        double[] yValues = new double[numYPoints];
-
-        double step = diff / numYPoints;
-        for (int i=0; i<numYPoints; i++) {
-            xValues[i] = x;
-            yValues[i] = yMin + i*step;
-        }
-
+        double[] xValues = new double[]{x, x};
+        double[] yValues = new double[]{yMin, yMax};
 
         dataset.removeSeries(seriesKey);
         dataset.addSeries(seriesKey, new double[][]{xValues, yValues});
-    }
-
-
-    private double[] calcYMinMax (Expression function, String variableName) throws EvaluationException {
-        return calcYMinMax(function, variableName, Double.NaN, Double.NaN);
-    }
-
-    private double[] calcYMinMax (Expression function, String variableName, double xMin, double xMax) throws EvaluationException {
-        if (Double.isNaN(xDiff))
-            return null;
-
-        if (!Double.isFinite(xMin) || xMin < this.xMin)
-            xMin = this.xMin;
-
-        if (!Double.isFinite(xMax) || xMax > this.xMax)
-            xMax = this.xMax;
-
-        if (xMax < xMin)
-            return null;
-
-
-        VariableDefinition xVariable = new VariableDefinition(variableName, 0);
-
-        double diff = xMax - xMin;
-        int numXPoints = (int) (diff/this.xDiff * NUM_X_POINTS + 0.5);
-
-        double yMin = Double.POSITIVE_INFINITY;
-        double yMax = Double.NEGATIVE_INFINITY;
-
-        double step = diff / numXPoints;
-        for (int i=0; i<numXPoints; i++) {
-            double x = xMin + i*step;
-            xVariable.setValue(new Scalar(x));
-
-            double y = function.evaluate(xVariable);
-            if (y < yMin)
-                yMin = y;
-
-            if (y > yMax)
-                yMax = y;
-        }
-
-        return new double[]{yMin, yMax};
     }
 
 
