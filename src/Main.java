@@ -16,17 +16,32 @@ public class Main {
     public static void main (String[] args) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        //*
+        /*
         String functionText = requestInput(reader, "enter function: ");
         String startValueText = requestInput(reader, "enter start value: ");
         String minimumPrecisionText = requestInput(reader, "enter minimum precision: ");
         String maximumIterationCountText = requestInput(reader, "enter maximum iteration count: ");
         // */
-        /*
-        String functionText = "(x-1)^2 - 0.2";
-        String startValueText = "15";
-        String minimumPrecisionText = "1e-10";
-        String maximumIterationCountText = "1000";
+        //*
+        //String functionText = "x^3 + 4x - 4";
+        //String startValueText = "12";
+        //String functionText = "ln(x^4 + 5x^3 - 5)";
+        //String startValueText = "1.05";
+        //String functionText = "x^3 - 5x^2 - 4x + 2";
+        //String startValueText = "3";
+        //String startValueText = "2.5";
+        //String startValueText = "-2.5";
+        //String startValueText = "8";
+        //String functionText = "sin(x^2)*2^-x";
+        //String startValueText = "-0.8";
+        //String startValueText = "-1.2";
+        //String startValueText = "1.2";
+        String functionText = "e^ln((sin(sqrt(x)+pi)*cos(x))+1)*x^-1-0.05";
+        //String startValueText = "3";
+        //String startValueText = "4";
+        String startValueText = "5";
+        String minimumPrecisionText = "1e-5";
+        String maximumIterationCountText = "100";
         // */
 
         try {
