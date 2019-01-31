@@ -16,13 +16,13 @@ public class Main {
     public static void main (String[] args) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-        /*
+        //*
         String functionText = requestInput(reader, "enter function: ");
         String startValueText = requestInput(reader, "enter start value: ");
         String minimumPrecisionText = requestInput(reader, "enter minimum precision: ");
         String maximumIterationCountText = requestInput(reader, "enter maximum iteration count: ");
         // */
-        //*
+        /*
         //String functionText = "x^3 + 4x - 4";
         //String startValueText = "12";
         //String functionText = "ln(x^4 + 5x^3 - 5)";
