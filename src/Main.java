@@ -3,7 +3,6 @@ import math.VariableDefinition;
 import math.exception.EvaluationException;
 import math.exception.ParseException;
 
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -88,24 +87,6 @@ public class Main {
 
             NewtonsMethod.Error error = newtonsMethod.getError();
             System.out.println("error: " + error);
-
-
-            if (NewtonsMethod.Error.SUCCESS.equals(error)) {
-                double[] xValuesArr = new double[xValues.size()];
-                for (int i=0; i<xValues.size(); i++)
-                    xValuesArr[i] = xValues.get(i);
-
-                double[] yValuesArr = new double[xValues.size()];
-                for (int i=0; i<xValues.size(); i++)
-                    yValuesArr[i] = yValues.get(i);
-
-
-                NewtonsMethodPlotFrame frame = new NewtonsMethodPlotFrame(function, functionDerivative, xValuesArr, yValuesArr);
-                frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                frame.pack();
-                frame.setVisible(true);
-            }
         } catch (ParseException | NumberFormatException | EvaluationException e) {
             e.printStackTrace();
         }
