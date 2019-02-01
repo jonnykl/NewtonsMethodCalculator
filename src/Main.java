@@ -80,8 +80,8 @@ public class Main {
                 double x = xValues.get(i);
                 double y = yValues.get(i);
 
-                System.out.println("x: " + x);
-                System.out.println("y: " + y);
+                System.out.println("#" + (i+1) + ": x: " + x);
+                System.out.println("#" + (i+1) + ": y: " + y);
                 System.out.println();
             }
 

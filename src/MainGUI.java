@@ -95,8 +95,8 @@ public class MainGUI {
                 double x = xValues.get(i);
                 double y = yValues.get(i);
 
-                taRawValues.append("x: " + x + "\n");
-                taRawValues.append("y: " + y + "\n");
+                taRawValues.append("#" + (i+1) + ": x: " + x + "\n");
+                taRawValues.append("#" + (i+1) + ": y: " + y + "\n");
                 taRawValues.append("\n");
             }
 

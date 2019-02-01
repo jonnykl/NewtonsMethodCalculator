@@ -220,7 +220,7 @@ public class NewtonsMethodPlotComponent extends JComponent {
 
                     PlotObject[] objs = new PlotObject[Double.isFinite(x_0) ? 3 : 2];
 
-                    objs[0] = new PlotInfo(x, y);
+                    objs[0] = new PlotInfo(i, x, y);
                     objs[1] = new PlotFunctionObject("Tangente", tangent, "x", xMin, xMax);
 
                     if (Double.isFinite(x_0))
@@ -269,7 +269,7 @@ public class NewtonsMethodPlotComponent extends JComponent {
             for (PlotObject obj : chunks) {
                 try {
                     if (obj instanceof PlotInfo)
-                        lCurrentStepInfo.setText("<html>x: " + ((PlotInfo) obj).x + "<br>y: " + ((PlotInfo) obj).y + "</html>");
+                        lCurrentStepInfo.setText("<html>Iteration #" + (((PlotInfo) obj).iteration+1) + "<br>x: " + ((PlotInfo) obj).x + "<br>y: " + ((PlotInfo) obj).y + "</html>");
                     else if (obj instanceof PlotFunctionObject)
                         plotFunction(obj.seriesKey, ((PlotFunctionObject) obj).function, ((PlotFunctionObject) obj).variableName, ((PlotFunctionObject) obj).xMin, ((PlotFunctionObject) obj).xMax);
                     else if (obj instanceof  PlotVerticalLineObject)
@@ -294,12 +294,14 @@ public class NewtonsMethodPlotComponent extends JComponent {
 
         private class PlotInfo extends PlotObject {
 
+            int iteration;
             double x, y;
 
 
-            public PlotInfo (double x, double y) {
+            public PlotInfo (int iteration, double x, double y) {
                 super(null);
 
+                this.iteration = iteration;
                 this.x = x;
                 this.y = y;
             }
