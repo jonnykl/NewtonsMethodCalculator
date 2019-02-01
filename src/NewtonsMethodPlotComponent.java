@@ -150,28 +150,25 @@ public class NewtonsMethodPlotComponent extends JComponent {
 
     private class UpdaterWorker extends SwingWorker<Void, UpdaterWorker.PlotObject> {
 
+        private PlotObject[][] plotObjects;
+
+
         @Override
         protected Void doInBackground () {
             if (xValues.length == 0)
                 return null;
 
+
             double stepDuration = 1e6 * ANIMATION_DURATION / xValues.length;
-            int step = 0;
 
             VariableDefinition xVariable = new VariableDefinition("x", 0);
             double x, y, m, xMin, xMax;
 
 
-            long t;
-            while (!stopped) {
-                t = System.nanoTime();
-
-                if (step == xValues.length)
-                    step = 0;
-
-
-                x = xValues[step];
-                y = yValues[step];
+            plotObjects = new PlotObject[xValues.length][];
+            for (int i=0; i<plotObjects.length; i++) {
+                x = xValues[i];
+                y = yValues[i];
 
                 xVariable.setValue(new Scalar(x));
 
@@ -220,20 +217,35 @@ public class NewtonsMethodPlotComponent extends JComponent {
                         xMax = Double.NaN;
                     }
 
-                    publish(new PlotInfo(x, y));
-                    publish(new PlotFunctionObject("Tangente", tangent, "x", xMin, xMax));
 
+                    PlotObject[] objs = new PlotObject[Double.isFinite(x_0) ? 3 : 2];
+
+                    objs[0] = new PlotInfo(x, y);
+                    objs[1] = new PlotFunctionObject("Tangente", tangent, "x", xMin, xMax);
 
                     if (Double.isFinite(x_0))
-                        publish(new PlotVerticalLineObject("vertikale Linie", x_0, yMin, yMax));
+                        objs[2] = new PlotVerticalLineObject("vertikale Linie", x_0, yMin, yMax);
+
+
+                    plotObjects[i] = objs;
                 } catch (EvaluationException e) {
                     e.printStackTrace();
                 }
+            }
 
 
+            long t;
+            int step = 0;
 
+            while (!stopped) {
+                t = System.nanoTime();
+
+                for (PlotObject obj : plotObjects[step])
+                    publish(obj);
 
                 step++;
+                if (step == plotObjects.length)
+                    step = 0;
 
                 try {
                     long sleepTime = (long) ((t+stepDuration-System.nanoTime())/1e6);
@@ -243,6 +255,7 @@ public class NewtonsMethodPlotComponent extends JComponent {
                     e.printStackTrace();
                 }
             }
+
 
             return null;
         }
