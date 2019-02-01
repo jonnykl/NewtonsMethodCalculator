@@ -6,7 +6,7 @@ import math.exception.EvaluationException;
 public class Function extends Expression {
 
     public enum F {
-        sin, cos, tan, sinh, cosh, tanh, sech, csch, cot, coth, csc, ln, abs, sqrt, round, ceil, floor
+        sin, cos, tan, sinh, cosh, tanh, sech, csch, cot, coth, csc, sec, ln, abs, sqrt, round, ceil, floor
     }
 
 
@@ -81,6 +81,9 @@ public class Function extends Expression {
 
             case csc:
                 return 1/Math.sin(parameter.evaluate(variables));
+
+            case sec:
+                return 1/Math.cos(parameter.evaluate(variables));
 
             case ln:
                 return Math.log(parameter.evaluate(variables));

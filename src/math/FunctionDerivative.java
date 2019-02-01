@@ -174,6 +174,17 @@ public class FunctionDerivative {
                             new Scalar(2)
                     )
             );
+        } else if (Function.F.csc.equals(f)) {
+            functionDerivative = new MultiplicationList(
+                    new Scalar(-1),
+                    new Function(Function.F.cot, parameter),
+                    new Function(Function.F.csc, parameter)
+            );
+        } else if (Function.F.sec.equals(f)) {
+            functionDerivative = new MultiplicationList(
+                    new Function(Function.F.sec, parameter),
+                    new Function(Function.F.tan, parameter)
+            );
         } else if (Function.F.ln.equals(f)) {
             functionDerivative = new Division(
                     new Scalar(1),
