@@ -162,9 +162,12 @@ public class FunctionDerivative {
                     new Function(Function.F.csch, parameter)
             );
         } else if (Function.F.cot.equals(f)) {
-            functionDerivative = new Exponentiation(
-                    new Function(Function.F.csc, parameter),
-                    new Scalar(2)
+            functionDerivative = new MultiplicationList(
+                    new Scalar(-1),
+                    new Exponentiation(
+                            new Function(Function.F.csc, parameter),
+                            new Scalar(2)
+                    )
             );
         } else if (Function.F.coth.equals(f)) {
             functionDerivative = new MultiplicationList(
