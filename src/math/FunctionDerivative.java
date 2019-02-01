@@ -61,6 +61,21 @@ public class FunctionDerivative {
                     compute(exponent, variableName),
                     function
             );
+        } else if (exponent instanceof Scalar) {
+            return new MultiplicationList(
+                    new Scalar(((Scalar) exponent).getValue()),
+                    compute(base, variableName),
+                    new Exponentiation(
+                            base,
+                            new Scalar(((Scalar) exponent).getValue() - 1)
+                    )
+            );
+        } else if (base instanceof Scalar && ((Scalar) base).getValue() > 0) {
+            return new MultiplicationList(
+                    new Function(Function.F.ln, base),
+                    compute(exponent, variableName),
+                    function
+            );
         } else {
             return exponentiation(new Exponentiation(
                     new Constant(Constant.C.e),
