@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CommandLine">
+    <output-path>$PROJECT_DIR$/out/artifacts/CommandLine</output-path>
+    <root id="archive" name="AnaNumProject.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/MF/CommandLine/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="AnaNumProject" />
+    </root>
+  </artifact>
+</component>
