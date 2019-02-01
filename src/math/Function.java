@@ -45,63 +45,61 @@ public class Function extends Expression {
 
     @Override
     public double evaluate (VariableDefinition ...variables) throws EvaluationException {
-        double tmp;
+        double param = parameter.evaluate(variables);
         switch (function) {
             case sin:
-                return Math.sin(parameter.evaluate(variables));
+                return Math.sin(param);
 
             case cos:
-                return Math.cos(parameter.evaluate(variables));
+                return Math.cos(param);
 
             case tan:
-                return Math.tan(parameter.evaluate(variables));
+                return Math.tan(param);
 
             case sinh:
-                return Math.sinh(parameter.evaluate(variables));
+                return Math.sinh(param);
 
             case cosh:
-                return Math.cosh(parameter.evaluate(variables));
+                return Math.cosh(param);
 
             case tanh:
-                return Math.tanh(parameter.evaluate(variables));
+                return Math.tanh(param);
 
             case sech:
-                return 1/Math.cosh(parameter.evaluate(variables));
+                return 1/Math.cosh(param);
 
             case csch:
-                return 1/Math.sinh(parameter.evaluate(variables));
+                return 1/Math.sinh(param);
 
             case cot:
-                tmp = parameter.evaluate(variables);
-                return Math.cos(tmp) / Math.sin(tmp);
+                return 1/Math.tan(param);
 
             case coth:
-                tmp = parameter.evaluate(variables);
-                return Math.cosh(tmp) / Math.sinh(tmp);
+                return 1/Math.tanh(param);
 
             case csc:
-                return 1/Math.sin(parameter.evaluate(variables));
+                return 1/Math.sin(param);
 
             case sec:
-                return 1/Math.cos(parameter.evaluate(variables));
+                return 1/Math.cos(param);
 
             case ln:
-                return Math.log(parameter.evaluate(variables));
+                return Math.log(param);
 
             case abs:
-                return Math.abs(parameter.evaluate(variables));
+                return Math.abs(param);
 
             case sqrt:
-                return Math.sqrt(parameter.evaluate(variables));
+                return Math.sqrt(param);
 
             case round:
-                return Math.round(parameter.evaluate(variables));
+                return Math.round(param);
 
             case ceil:
-                return Math.ceil(parameter.evaluate(variables));
+                return Math.ceil(param);
 
             case floor:
-                return Math.floor(parameter.evaluate(variables));
+                return Math.floor(param);
 
 
             default:
