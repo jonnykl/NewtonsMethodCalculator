@@ -6,7 +6,7 @@ import math.exception.EvaluationException;
 public class Function extends Expression {
 
     public enum F {
-        sin, cos, tan, ln, abs, sqrt, round, ceil, floor
+        sin, cos, tan, sinh, cosh, tanh, sech, csch, cot, coth, csc, ln, abs, sqrt, round, ceil, floor
     }
 
 
@@ -45,6 +45,7 @@ public class Function extends Expression {
 
     @Override
     public double evaluate (VariableDefinition ...variables) throws EvaluationException {
+        double tmp;
         switch (function) {
             case sin:
                 return Math.sin(parameter.evaluate(variables));
@@ -54,6 +55,32 @@ public class Function extends Expression {
 
             case tan:
                 return Math.tan(parameter.evaluate(variables));
+
+            case sinh:
+                return Math.sinh(parameter.evaluate(variables));
+
+            case cosh:
+                return Math.cosh(parameter.evaluate(variables));
+
+            case tanh:
+                return Math.tanh(parameter.evaluate(variables));
+
+            case sech:
+                return 1/Math.cosh(parameter.evaluate(variables));
+
+            case csch:
+                return 1/Math.sinh(parameter.evaluate(variables));
+
+            case cot:
+                tmp = parameter.evaluate(variables);
+                return Math.cos(tmp) / Math.sin(tmp);
+
+            case coth:
+                tmp = parameter.evaluate(variables);
+                return Math.cosh(tmp) / Math.sinh(tmp);
+
+            case csc:
+                return 1/Math.sin(parameter.evaluate(variables));
 
             case ln:
                 return Math.log(parameter.evaluate(variables));

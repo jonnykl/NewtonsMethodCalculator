@@ -125,6 +125,40 @@ public class FunctionDerivative {
                     )),
                     new AdditionList.Addend(new Scalar(1))
             );
+        } else if (Function.F.sinh.equals(f)) {
+            functionDerivative = new Function(Function.F.cosh, parameter);
+        } else if (Function.F.cosh.equals(f)) {
+            functionDerivative = new Function(Function.F.sinh, parameter);
+        } else if (Function.F.tanh.equals(f)) {
+            functionDerivative = new Exponentiation(
+                    new Function(Function.F.sech, parameter),
+                    new Scalar(2)
+            );
+        } else if (Function.F.sech.equals(f)) {
+            functionDerivative = new MultiplicationList(
+                    new Scalar(-1),
+                    new Function(Function.F.sech, parameter),
+                    new Function(Function.F.tanh, parameter)
+            );
+        } else if (Function.F.csch.equals(f)) {
+            functionDerivative = new MultiplicationList(
+                    new Scalar(-1),
+                    new Function(Function.F.coth, parameter),
+                    new Function(Function.F.csch, parameter)
+            );
+        } else if (Function.F.cot.equals(f)) {
+            functionDerivative = new Exponentiation(
+                    new Function(Function.F.csc, parameter),
+                    new Scalar(2)
+            );
+        } else if (Function.F.coth.equals(f)) {
+            functionDerivative = new MultiplicationList(
+                    new Scalar(-1),
+                    new Exponentiation(
+                            new Function(Function.F.csch, parameter),
+                            new Scalar(2)
+                    )
+            );
         } else if (Function.F.ln.equals(f)) {
             functionDerivative = new Division(
                     new Scalar(1),
