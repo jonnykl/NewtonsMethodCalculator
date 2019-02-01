@@ -32,9 +32,11 @@ public class Variable extends Expression {
 
     @Override
     public double evaluate (VariableDefinition ...variables) throws EvaluationException {
-        for (VariableDefinition var : variables) {
-            if (name.equals(var.getName())) {
-                return var.getValue().evaluate(variables);
+        if (variables != null) {
+            for (VariableDefinition var : variables) {
+                if (name.equals(var.getName())) {
+                    return var.getValue().evaluate(variables);
+                }
             }
         }
 

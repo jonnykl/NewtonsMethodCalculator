@@ -4,6 +4,9 @@ package math;
 public class FunctionDerivative {
 
     public static Expression compute (Expression function, String variableName) {
+        if (function == null)
+            throw new NullPointerException("function may not be null");
+
         if (function instanceof Addition)
             return addition((Addition) function, variableName);
         else if (function instanceof Subtraction)

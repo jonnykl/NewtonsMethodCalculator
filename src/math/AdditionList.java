@@ -4,7 +4,6 @@ package math;
 import math.exception.EvaluationException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -28,24 +27,45 @@ public class AdditionList extends Expression {
 
 
     public void setAddends (Addend ...addends) {
+        if (addends == null)
+            throw new NullPointerException("addends may not be null");
+
         this.addends.clear();
-        Collections.addAll(this.addends, addends);
+        for (Addend addend : addends) {
+            if (addend == null)
+                throw new NullPointerException("addend may not be null");
+
+            this.addends.add(addend);
+        }
     }
 
     public void setAddends (Expression[] addends, boolean[] subtract) {
+        if (addends == null)
+            throw new NullPointerException("addends may not be null");
+
         if (subtract != null && addends.length != subtract.length)
             throw new IllegalArgumentException("different number of addends and subtract entries");
 
         this.addends.clear();
-        for (int i=0; i<addends.length; i++)
+        for (int i=0; i<addends.length; i++) {
+            if (addends[i] == null)
+                throw new NullPointerException("addend may not be null");
+
             addAddend(new Addend(addends[i], subtract != null && subtract[i]));
+        }
     }
 
     public void addAddend (Addend addend) {
+        if (addend == null)
+            throw new NullPointerException("addend may not be null");
+
         this.addends.add(addend);
     }
 
     public void addAddend (Expression addend, boolean subtract) {
+        if (addend == null)
+            throw new NullPointerException("addend may not be null");
+
         this.addends.add(new Addend(addend, subtract));
     }
 

@@ -4,7 +4,6 @@ package math;
 import math.exception.EvaluationException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -24,11 +23,22 @@ public class MultiplicationList extends Expression {
 
 
     public void setMultiplicands (Expression ...multiplicands) {
+        if (multiplicands == null)
+            throw new NullPointerException("multiplicands may not be null");
+
         this.multiplicands.clear();
-        Collections.addAll(this.multiplicands, multiplicands);
+        for (Expression multiplicand : multiplicands) {
+            if (multiplicand == null)
+                throw new NullPointerException("multiplicand may not be null");
+
+            this.multiplicands.add(multiplicand);
+        }
     }
 
     public void addMultiplicand (Expression multiplicand) {
+        if (multiplicand == null)
+            throw new NullPointerException("multiplicand may not be null");
+
         this.multiplicands.add(multiplicand);
     }
 

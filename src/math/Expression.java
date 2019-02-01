@@ -10,16 +10,6 @@ public abstract class Expression {
         return ExpressionParser.parse(text);
     }
 
-    public String toSimplifiedString () {
-        return simplify(toString());
-    }
-
-
-    private static String simplify (String expression) {
-        // TODO simplify expression
-        return null;
-    }
-
 
     @Override
     public boolean equals (Object obj) {
