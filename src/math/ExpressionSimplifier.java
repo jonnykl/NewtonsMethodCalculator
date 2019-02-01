@@ -447,7 +447,7 @@ public class ExpressionSimplifier {
                     int idx = 0;
 
                     for (Expression multiplicand : multiplicands) {
-                        if (multiplicand instanceof Function && Function.F.ln.equals(((Function) multiplicand).getFunction())) {
+                        if (newBase == null && multiplicand instanceof Function && Function.F.ln.equals(((Function) multiplicand).getFunction())) {
                             newBase = ((Function) multiplicand).getParameter();
                             continue;
                         }
