@@ -6,10 +6,11 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.DefaultXYDataset;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 
 
-public class NewtonsMethodPlotFrame extends JFrame {
+public class NewtonsMethodPlotComponent extends JComponent {
 
     private static final int NUM_X_POINTS = 1000;
     private static final int ANIMATION_DURATION = 5 * 1000;
@@ -28,13 +29,17 @@ public class NewtonsMethodPlotFrame extends JFrame {
     private DefaultXYDataset dataset = new DefaultXYDataset();
 
 
-    public NewtonsMethodPlotFrame (Expression function, Expression functionDerivative, double[] xValues, double[] yValues) {
-        super("Newton's method");
+    private boolean stopped = false;
+    private JLabel lCurrentStepInfo;
 
 
+    public NewtonsMethodPlotComponent (Expression function, Expression functionDerivative, double[] xValues, double[] yValues, JLabel lCurrentStepInfo) {
         this.functionDerivative = functionDerivative;
         this.xValues = xValues;
         this.yValues = yValues;
+
+        this.lCurrentStepInfo = lCurrentStepInfo;
+
 
         for (double x : xValues) {
             if (x < xMin)
@@ -69,9 +74,9 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
 
         try {
-            plotFunction("function", function, "x");
-            plotFunction("derivative", functionDerivative, "x");
-            plotFunction("x axis", new Scalar(0), "x");
+            plotFunction("Funktion", function, "x");
+            plotFunction("Ableitung", functionDerivative, "x");
+            plotFunction("x-Achse", new Scalar(0), "x");
         } catch (EvaluationException e) {
             e.printStackTrace();
         }
@@ -79,7 +84,8 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
         JFreeChart chart = ChartFactory.createXYLineChart(null, "x", "y", dataset);
 
-        setContentPane(new ChartPanel(chart));
+        setLayout(new BorderLayout());
+        add(new ChartPanel(chart), BorderLayout.CENTER);
         (new UpdaterWorker()).execute();
     }
 
@@ -137,6 +143,11 @@ public class NewtonsMethodPlotFrame extends JFrame {
     }
 
 
+    public void stop () {
+        stopped = true;
+    }
+
+
     private class UpdaterWorker extends SwingWorker<Void, UpdaterWorker.PlotObject> {
 
         @Override
@@ -152,7 +163,7 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
 
             long t;
-            while (true) {
+            while (!stopped) {
                 t = System.nanoTime();
 
                 if (step == xValues.length)
@@ -209,11 +220,12 @@ public class NewtonsMethodPlotFrame extends JFrame {
                         xMax = Double.NaN;
                     }
 
-                    publish(new PlotFunctionObject("tangent", tangent, "x", xMin, xMax));
+                    publish(new PlotInfo(x, y));
+                    publish(new PlotFunctionObject("Tangente", tangent, "x", xMin, xMax));
 
 
                     if (Double.isFinite(x_0))
-                        publish(new PlotVerticalLineObject("vertical line", x_0, yMin, yMax));
+                        publish(new PlotVerticalLineObject("vertikale Linie", x_0, yMin, yMax));
                 } catch (EvaluationException e) {
                     e.printStackTrace();
                 }
@@ -231,6 +243,8 @@ public class NewtonsMethodPlotFrame extends JFrame {
                     e.printStackTrace();
                 }
             }
+
+            return null;
         }
 
 
@@ -241,7 +255,9 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
             for (PlotObject obj : chunks) {
                 try {
-                    if (obj instanceof PlotFunctionObject)
+                    if (obj instanceof PlotInfo)
+                        lCurrentStepInfo.setText("<html>x: " + ((PlotInfo) obj).x + "<br>y: " + ((PlotInfo) obj).y + "</html>");
+                    else if (obj instanceof PlotFunctionObject)
                         plotFunction(obj.seriesKey, ((PlotFunctionObject) obj).function, ((PlotFunctionObject) obj).variableName, ((PlotFunctionObject) obj).xMin, ((PlotFunctionObject) obj).xMax);
                     else if (obj instanceof  PlotVerticalLineObject)
                         plotVerticalLine(obj.seriesKey, ((PlotVerticalLineObject) obj).x, ((PlotVerticalLineObject) obj).yMin, ((PlotVerticalLineObject) obj).yMax);
@@ -259,6 +275,20 @@ public class NewtonsMethodPlotFrame extends JFrame {
 
             PlotObject (Comparable seriesKey) {
                 this.seriesKey = seriesKey;
+            }
+
+        }
+
+        private class PlotInfo extends PlotObject {
+
+            double x, y;
+
+
+            public PlotInfo (double x, double y) {
+                super(null);
+
+                this.x = x;
+                this.y = y;
             }
 
         }
