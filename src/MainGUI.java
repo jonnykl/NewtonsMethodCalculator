@@ -165,12 +165,6 @@ public class MainGUI {
 
 
     public static void main (String[] args) {
-        try {
-            UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
-
         JFrame frame = new JFrame("Newton-Verfahren");
         frame.setContentPane((new MainGUI()).pMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
